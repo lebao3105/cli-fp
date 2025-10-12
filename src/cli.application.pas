@@ -1001,9 +1001,11 @@ begin
   TConsole.WriteLn(BashFunc+'()');
   TConsole.WriteLn('{');
   TConsole.WriteLn('  local cur words cword path subcmds params i');
-  TConsole.WriteLn('  # DEBUG: Print function call and COMP_WORDS');
-  TConsole.WriteLn('  # Uncomment for debugging:');
-  TConsole.WriteLn('  # echo "[DEBUG] Called: $FUNCNAME, COMP_WORDS=(\"${COMP_WORDS[@]}\") COMP_CWORD=$COMP_CWORD" >&2');
+  if FDebugMode then
+  begin
+    TConsole.WriteLn('  # DEBUG: Print function call and COMP_WORDS');
+    TConsole.WriteLn('  echo "[DEBUG] Called: $FUNCNAME, COMP_WORDS=(\"${COMP_WORDS[@]}\") COMP_CWORD=$COMP_CWORD" >&2');
+  end;
   TConsole.WriteLn('  cur="${COMP_WORDS[COMP_CWORD]}"');
   TConsole.WriteLn('  words=("${COMP_WORDS[@]}")');
   TConsole.WriteLn('  cword=$COMP_CWORD');
@@ -1030,9 +1032,11 @@ begin
   TConsole.WriteLn('  fi');
   TConsole.WriteLn('  subcmds="${tree[$path|subcommands]}"');
   TConsole.WriteLn('  params="${tree[$path|params]}"');
-  TConsole.WriteLn('  # DEBUG: Print path, subcmds, params, i, cword, cur');
-  TConsole.WriteLn('  # Uncomment for debugging:');
-  TConsole.WriteLn('  # echo "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword cur=[$cur]" >&2');
+  if FDebugMode then
+  begin
+    TConsole.WriteLn('  # DEBUG: Print path, subcmds, params, i, cword, cur');
+    TConsole.WriteLn('  echo "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword cur=[$cur]" >&2');
+  end;
   TConsole.WriteLn('  if [[ -n "$subcmds" && $i -eq $cword ]]; then');
   TConsole.WriteLn('    COMPREPLY=( $(compgen -W "$subcmds $params" -- "$cur") )');
   TConsole.WriteLn('  else');
@@ -1106,9 +1110,12 @@ begin
   TConsole.WriteLn('');
   TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + AppName + '" -ScriptBlock {');
   TConsole.WriteLn('  param($commandName, $wordToComplete, $cursorPosition, $commandAst, $fakeBoundParameters)');
-  TConsole.WriteLn('  # DEBUG: Print all $tree keys');
-  TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
-  TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
+  if FDebugMode then
+  begin
+    TConsole.WriteLn('  # DEBUG: Print all $tree keys');
+    TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
+    TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
+  end;
   TConsole.WriteLn('  if ($null -ne $commandAst) {');
   TConsole.WriteLn('    $line = $commandAst.ToString()');
   TConsole.WriteLn('  } elseif ($args.Count -ge 3) {');
@@ -1143,8 +1150,11 @@ begin
   TConsole.WriteLn('  }');
   TConsole.WriteLn('  $subcmds = $tree["$path|subcommands"]');
   TConsole.WriteLn('  $params = $tree["$path|params"]');
-  TConsole.WriteLn('  # DEBUG: Print key variables');
-  TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
+  if FDebugMode then
+  begin
+    TConsole.WriteLn('  # DEBUG: Print key variables');
+    TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
+  end;
   TConsole.WriteLn('  # Detect if the cursor is after a space (i.e., starting a new word)');
   TConsole.WriteLn('  $afterSpace = ($cursorPosition -gt 0 -and $line[$cursorPosition-1] -eq " ")');
   TConsole.WriteLn('  if ($afterSpace) {');
@@ -1176,9 +1186,12 @@ begin
   // Register for .\\appname.exe as well (for local invocation)
   TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\\' + AppName + '" -ScriptBlock {');
   TConsole.WriteLn('  param($commandName, $wordToComplete, $cursorPosition, $commandAst, $fakeBoundParameters)');
-  TConsole.WriteLn('  # DEBUG: Print all $tree keys');
-  TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
-  TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
+  if FDebugMode then
+  begin
+    TConsole.WriteLn('  # DEBUG: Print all $tree keys');
+    TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
+    TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
+  end;
   TConsole.WriteLn('  if ($null -ne $commandAst) {');
   TConsole.WriteLn('    $line = $commandAst.ToString()');
   TConsole.WriteLn('  } elseif ($args.Count -ge 3) {');
@@ -1213,8 +1226,11 @@ begin
   TConsole.WriteLn('  }');
   TConsole.WriteLn('  $subcmds = $tree["$path|subcommands"]');
   TConsole.WriteLn('  $params = $tree["$path|params"]');
-  TConsole.WriteLn('  # DEBUG: Print key variables');
-  TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
+  if FDebugMode then
+  begin
+    TConsole.WriteLn('  # DEBUG: Print key variables');
+    TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
+  end;
   TConsole.WriteLn('  # Detect if the cursor is after a space (i.e., starting a new word)');
   TConsole.WriteLn('  $afterSpace = ($cursorPosition -gt 0 -and $line[$cursorPosition-1] -eq " ")');
   TConsole.WriteLn('  if ($afterSpace) {');
