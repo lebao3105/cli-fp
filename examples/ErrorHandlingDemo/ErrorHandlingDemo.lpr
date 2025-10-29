@@ -90,7 +90,7 @@ begin
   // GetParameterValue is a helper method from TBaseCommand
   if not GetParameterValue('--path', Path) then
   begin
-    TConsole.WriteLn('Error: Path is required', ccRed);
+    WriteColoredLn('Error: Path is required', ccRed);
     Exit(1);
   end;
 
@@ -121,22 +121,22 @@ begin
       for i := 0 to Files.Count - 1 do
       begin
         // Show current file being processed
-        TConsole.Write('Validating ' + Files[i] + '... ', ccCyan);
+        WriteColored('Validating ' + Files[i] + '... ', ccCyan);
 
         try
           // Attempt to validate the file
           if ValidateFile(Files[i]) then
-            TConsole.WriteLn('OK', ccGreen)
+            WriteColoredLn('OK', ccGreen)
           else
           begin
             // Handle validation failure
-            TConsole.WriteLn('FAILED', ccRed);
+            WriteColoredLn('FAILED', ccRed);
             Inc(ErrorCount);
 
             // Check if we should stop on first error
             if StopOnError then
             begin
-              TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
+              WriteColoredLn('Stopping due to error (--stop-on-error)', ccYellow);
               Exit(1);
             end;
           end;
@@ -144,12 +144,12 @@ begin
           // Handle any unexpected exceptions during validation
           on E: Exception do
           begin
-            TConsole.WriteLn('ERROR: ' + E.Message, ccRed);
+            WriteColoredLn('ERROR: ' + E.Message, ccRed);
             Inc(ErrorCount);
 
             if StopOnError then
             begin
-              TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
+              WriteColoredLn('Stopping due to error (--stop-on-error)', ccYellow);
               Exit(1);
             end;
           end;
@@ -159,17 +159,17 @@ begin
       // Show final summary with color-coded output
       if ErrorCount > 0 then
       begin
-        TConsole.WriteLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow);
+        WriteColoredLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow);
         Result := 1;
       end
       else
-        TConsole.WriteLn('All files validated successfully', ccGreen);
+        WriteColoredLn('All files validated successfully', ccGreen);
 
     except
       // Handle any unexpected errors in the main process
       on E: Exception do
       begin
-        TConsole.WriteLn('Fatal error: ' + E.Message, ccRed);
+        WriteColoredLn('Fatal error: ' + E.Message, ccRed);
         Result := 1;
       end;
     end;

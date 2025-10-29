@@ -66,7 +66,7 @@ begin
     begin
       Spinner.Update(0);  // Update spinner animation
       Sleep(500);         // Simulate some work (don't use in real code)
-      TConsole.WriteLn('Hello, ' + NameValue + '!', ccGreen);  // Green text output
+      WriteColoredLn('Hello, ' + NameValue + '!', ccGreen);  // Green text output
     end;
   finally
     Spinner.Stop;  // Always stop the spinner
@@ -111,7 +111,7 @@ begin
       Display error in red and set error exit code }
     on E: Exception do
     begin
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       ExitCode := 1;
     end;
   end;

@@ -29,15 +29,15 @@ begin
   if IsFlagSet then
   begin
     if SameText(FlagValue, 'true') then
-      TConsole.WriteLn('Test passed: Flag is true when provided', ccGreen)
+      WriteColoredLn('Test passed: Flag is true when provided', ccGreen)
     else if SameText(FlagValue, 'false') then
-      TConsole.WriteLn('Test failed: Flag should be true when provided', ccRed)
+      WriteColoredLn('Test failed: Flag should be true when provided', ccRed)
     else
-      TConsole.WriteLn('Test failed: Invalid flag value: ' + FlagValue, ccRed);
+      WriteColoredLn('Test failed: Invalid flag value: ' + FlagValue, ccRed);
   end
   else
   begin
-    TConsole.WriteLn('Test passed: Flag is false by default', ccGreen);
+    WriteColoredLn('Test passed: Flag is false by default', ccGreen);
   end;
   
   Result := 0;

@@ -297,9 +297,9 @@ var
   Name: string;
 begin
   if GetParameterValue('--name', Name) then
-    TConsole.WriteLn('Hello, ' + Name + '!')
+    WriteColoredLn('Hello, ' + Name + '!')
   else
-    TConsole.WriteLn('Hello, World!');
+    WriteColoredLn('Hello, World!');
   Result := 0;
 end;
 
@@ -323,7 +323,7 @@ begin
   except
     on E: Exception do
     begin
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       ExitCode := 1;
     end;
   end;
@@ -352,16 +352,16 @@ var
 begin
   if not GetParameterValue('--url', Url) then
   begin
-    TConsole.WriteLn('Error: URL is required', ccRed);
+    WriteColoredLn('Error: URL is required', ccRed);
     Exit(1);
   end;
 
   Progress := CreateSpinner(ssLine);
   Progress.Start;
   try
-    TConsole.WriteLn('Cloning from ' + Url + '...', ccCyan);
+    WriteColoredLn('Cloning from ' + Url + '...', ccCyan);
     Sleep(2000); // Simulate work
-    TConsole.WriteLn('Clone complete!', ccGreen);
+    WriteColoredLn('Clone complete!', ccGreen);
     Result := 0;
   finally
     Progress.Stop;
@@ -379,9 +379,9 @@ begin
   Progress := CreateSpinner(ssLine);
   Progress.Start;
   try
-    TConsole.WriteLn('Initializing repository at ' + Path + '...', ccCyan);
+    WriteColoredLn('Initializing repository at ' + Path + '...', ccCyan);
     Sleep(1000); // Simulate work
-    TConsole.WriteLn('Repository initialized!', ccGreen);
+    WriteColoredLn('Repository initialized!', ccGreen);
     Result := 0;
   finally
     Progress.Stop;
@@ -420,7 +420,7 @@ begin
   except
     on E: Exception do
     begin
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       ExitCode := 1;
     end;
   end;
@@ -521,7 +521,7 @@ begin
   // Start the spinner
   Spinner.Start;
   try
-    TConsole.WriteLn('Processing files...', ccCyan);
+    WriteColoredLn('Processing files...', ccCyan);
     
     // Your processing loop
     for i := 0 to Files.Count - 1 do
@@ -534,7 +534,7 @@ begin
       Sleep(100);  // Simulate work
     end;
     
-    TConsole.WriteLn('Processing complete!', ccGreen);
+    WriteColoredLn('Processing complete!', ccGreen);
   finally
     // Always stop the spinner in a finally block
     Spinner.Stop;
@@ -564,7 +564,7 @@ begin
   // Start the progress bar
   Progress.Start;
   try
-    TConsole.WriteLn('Copying files...', ccCyan);
+    WriteColoredLn('Copying files...', ccCyan);
     
     // Your processing loop
     for i := 0 to Files.Count - 1 do
@@ -577,7 +577,7 @@ begin
       Sleep(50);  // Simulate work
     end;
     
-    TConsole.WriteLn('Copy complete!', ccGreen);
+    WriteColoredLn('Copy complete!', ccGreen);
   finally
     // Always stop the progress bar in a finally block
     Progress.Stop;

@@ -29,36 +29,36 @@ begin
   HasTrueFlag := GetParameterValue('--true-flag', TrueFlagValue);
   
   // Output the results
-  TConsole.WriteLn('Test Results:', ccCyan);
-  TConsole.WriteLn('----------------------------------------', ccCyan);
+  WriteColoredLn('Test Results:', ccCyan);
+  WriteColoredLn('----------------------------------------', ccCyan);
   
   // Simple flag (--flag)
   if HasFlag then
   begin
     if SameText(FlagValue, 'true') then
-      TConsole.WriteLn('1. Simple flag (--flag): true', ccGreen)
+      WriteColoredLn('1. Simple flag (--flag): true', ccGreen)
     else
-      TConsole.WriteLn('1. Simple flag (--flag): ' + FlagValue , ccYellow);
+      WriteColoredLn('1. Simple flag (--flag): ' + FlagValue , ccYellow);
   end
   else
-    TConsole.WriteLn('1. Simple flag (--flag): false (default)', ccGreen);
+    WriteColoredLn('1. Simple flag (--flag): false (default)', ccGreen);
   
   // Boolean parameter (--bool)
   if HasBool then
-    TConsole.WriteLn('2. Boolean parameter (--bool): ' + BoolValue, ccGreen)
+    WriteColoredLn('2. Boolean parameter (--bool): ' + BoolValue, ccGreen)
   else
-    TConsole.WriteLn('2. Boolean parameter (--bool): false (default)', ccYellow);
+    WriteColoredLn('2. Boolean parameter (--bool): false (default)', ccYellow);
 
   // True flag (--true-flag)
   if HasTrueFlag then
   begin
     if SameText(TrueFlagValue, 'true') then
-      TConsole.WriteLn('3. True flag (--true-flag): true', ccGreen)
+      WriteColoredLn('3. True flag (--true-flag): true', ccGreen)
     else
-      TConsole.WriteLn('3. True flag (--true-flag): ' + TrueFlagValue + ' (explicitly set)', ccYellow);
+      WriteColoredLn('3. True flag (--true-flag): ' + TrueFlagValue + ' (explicitly set)', ccYellow);
   end
   else
-    TConsole.WriteLn('3. True flag (--true-flag): true (default)', ccGreen);
+    WriteColoredLn('3. True flag (--true-flag): true (default)', ccGreen);
   
   Result := 0;
 end;

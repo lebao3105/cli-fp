@@ -52,13 +52,13 @@ type
 procedure TGreetCommand.ShowHeader;
 begin
   // Add spacing before header
-  TConsole.WriteLn('', ccWhite);  // Empty line for spacing
+  WriteColoredLn('', ccWhite);  // Empty line for spacing
   
   // Draw a decorative box using Unicode characters
-  TConsole.WriteLn('╔══════════════════════════════════════╗', ccCyan);
-  TConsole.WriteLn('║        Welcome to ColorDemo          ║', ccCyan);
-  TConsole.WriteLn('╚══════════════════════════════════════╝', ccCyan);
-  TConsole.WriteLn('', ccWhite);  // Empty line for spacing
+  WriteColoredLn('╔══════════════════════════════════════╗', ccCyan);
+  WriteColoredLn('║        Welcome to ColorDemo          ║', ccCyan);
+  WriteColoredLn('╚══════════════════════════════════════╝', ccCyan);
+  WriteColoredLn('', ccWhite);  // Empty line for spacing
 end;
 
 procedure TGreetCommand.ShowGreeting(const AName: string);
@@ -67,8 +67,8 @@ var
   i: Integer;
 begin
   // Show a progress message with an arrow indicator
-  TConsole.Write('► ', ccGreen);
-  TConsole.WriteLn('Preparing greeting...', ccWhite);
+  WriteColored('► ', ccGreen);
+  WriteColoredLn('Preparing greeting...', ccWhite);
   
   // Create and run an animated spinner to show activity
   Spinner := CreateSpinner(ssDots);
@@ -85,21 +85,21 @@ begin
   end;
 
   // Display the greeting with mixed colors for visual appeal
-  TConsole.WriteLn('', ccWhite);  // Spacing
-  TConsole.Write('  ❯ ', ccGreen);  // Modern arrow indicator
-  TConsole.Write('Hello, ', ccWhite);
-  TConsole.Write(AName, ccYellow);  // Highlight the AName
-  TConsole.WriteLn('!', ccWhite);
-  TConsole.WriteLn('  Welcome to our professional CLI application.', ccWhite);
-  TConsole.WriteLn('', ccWhite);  // Spacing
+  WriteColoredLn('', ccWhite);  // Spacing
+  WriteColored('  ❯ ', ccGreen);  // Modern arrow indicator
+  WriteColored('Hello, ', ccWhite);
+  WriteColored(AName, ccYellow);  // Highlight the AName
+  WriteColoredLn('!', ccWhite);
+  WriteColoredLn('  Welcome to our professional CLI application.', ccWhite);
+  WriteColoredLn('', ccWhite);  // Spacing
 end;
 
 procedure TGreetCommand.ShowFooter;
 begin
   // Show help hint with info symbol
-  TConsole.Write('  ℹ ', ccBlue);
-  TConsole.WriteLn('Type --help for more options', ccWhite);
-  TConsole.WriteLn('', ccWhite);  // Final spacing
+  WriteColored('  ℹ ', ccBlue);
+  WriteColoredLn('Type --help for more options', ccWhite);
+  WriteColoredLn('', ccWhite);  // Final spacing
 end;
 
 function TGreetCommand.Execute: Integer;
@@ -120,8 +120,8 @@ begin
     // Handle any errors with a red X symbol
     on E: Exception do
     begin
-      TConsole.Write('  ✘ ', ccRed);
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColored('  ✘ ', ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       Result := 1;  // Return error code
     end;
   end;
@@ -152,7 +152,7 @@ begin
     // Handle any fatal errors during setup
     on E: Exception do
     begin
-      TConsole.WriteLn('Fatal Error: ' + E.Message, ccRed);
+      WriteColoredLn('Fatal Error: ' + E.Message, ccRed);
       ExitCode := 1;
     end;
   end;

@@ -60,7 +60,7 @@ begin
   if not DirectoryExists(Path) then
   begin
     // Use colored output for errors (red is conventional for errors)
-    TConsole.WriteLn('Error: Directory not found: ' + Path, ccRed);
+    WriteColoredLn('Error: Directory not found: ' + Path, ccRed);
     Exit(1);  // Return non-zero to indicate error
   end;
 
@@ -70,7 +70,7 @@ begin
   Progress.Start;
   try
     // Show status in cyan (conventional for information messages)
-    TConsole.WriteLn('Initializing repository at ' + Path + '...', ccCyan);
+    WriteColoredLn('Initializing repository at ' + Path + '...', ccCyan);
     Sleep(1000); // Simulate work (remove in real application)
 
     { Here you would actually:
@@ -80,7 +80,7 @@ begin
       4. Set up branches, etc. }
 
     // Show success message in green (conventional for success)
-    TConsole.WriteLn('Repository initialized!', ccGreen);
+    WriteColoredLn('Repository initialized!', ccGreen);
     Result := 0;  // Return 0 to indicate success
   finally
     // Always stop the progress indicator when done
@@ -98,7 +98,7 @@ begin
     If missing, GetParameterValue returns False }
   if not GetParameterValue('--url', Url) then
   begin
-    TConsole.WriteLn('Error: URL is required', ccRed);
+    WriteColoredLn('Error: URL is required', ccRed);
     Exit(1);
   end;
 
@@ -106,7 +106,7 @@ begin
     In a real application, you'd want more thorough validation }
   if (Pos('http://', Url) = 0) and (Pos('https://', Url) = 0) then
   begin
-    TConsole.WriteLn('Error: Invalid URL. Must start with http:// or https://', ccRed);
+    WriteColoredLn('Error: Invalid URL. Must start with http:// or https://', ccRed);
     Exit(1);
   end;
 
@@ -114,7 +114,7 @@ begin
   Progress := CreateSpinner(ssDots);
   Progress.Start;
   try
-    TConsole.WriteLn('Cloning from ' + Url + '...', ccCyan);
+    WriteColoredLn('Cloning from ' + Url + '...', ccCyan);
     Sleep(2000); // Simulate work
 
     { Here you would actually:
@@ -123,7 +123,7 @@ begin
       3. Download repository content
       4. Set up local configuration }
 
-    TConsole.WriteLn('Clone complete!', ccGreen);
+    WriteColoredLn('Clone complete!', ccGreen);
     Result := 0;
   finally
     Progress.Stop;
@@ -179,7 +179,7 @@ begin
     // Global error handler
     on E: Exception do
     begin
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       ExitCode := 1;
     end;
   end;

@@ -212,7 +212,7 @@ begin
   CmdName := ParamStr(1);
   if StartsStr('-', CmdName) then
   begin
-    TConsole.WriteLn('Error: No command specified', ccRed);
+    WriteColoredLn('Error: No command specified', ccRed);
     ShowBriefHelp;
     Exit(1);
   end;
@@ -222,7 +222,7 @@ begin
   
   if not Assigned(CurrentCmd) then
   begin
-    TConsole.WriteLn('Error: Unknown command "' + CmdName + '"', ccRed);
+    WriteColoredLn('Error: Unknown command "' + CmdName + '"', ccRed);
     ShowBriefHelp;
     Exit(1);
   end;
@@ -256,13 +256,13 @@ begin
     else
     begin
       // Show available subcommands on error
-      TConsole.WriteLn('Error: Unknown subcommand "' + SubCmdName + '" for ' + CurrentCmd.Name, ccRed);
-      TConsole.WriteLn('');
-      TConsole.WriteLn('Available subcommands:', ccCyan);
+      WriteColoredLn('Error: Unknown subcommand "' + SubCmdName + '" for ' + CurrentCmd.Name, ccRed);
+      WriteColoredLn('');
+      WriteColoredLn('Available subcommands:', ccCyan);
       for Cmd in CurrentCmd.SubCommands do
-        TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
-      TConsole.WriteLn('');
-      TConsole.WriteLn('Use "' + ExtractFileName(ParamStr(0)) + ' ' + 
+        WriteColoredLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
+      WriteColoredLn('');
+      WriteColoredLn('Use "' + ExtractFileName(ParamStr(0)) + ' ' + 
         CurrentCmd.Name + ' --help" for more information.');
       Exit(1);
     end;
@@ -302,7 +302,7 @@ begin
   except
     on E: Exception do
     begin
-      TConsole.WriteLn('Error executing command: ' + E.Message, ccRed);
+      WriteColoredLn('Error executing command: ' + E.Message, ccRed);
       Result := 1;
     end;
   end;
@@ -324,13 +324,13 @@ begin
   i := FParamStartIndex; // Start after program name and command name(s)
 
   if FDebugMode then
-    TConsole.WriteLn('Parsing command line...', ccCyan);
+    WriteColoredLn('Parsing command line...', ccCyan);
 
   while i <= ParamCount do
   begin
     Param := ParamStr(i);
     if FDebugMode then
-      TConsole.WriteLn('Processing argument ' + IntToStr(i) + ': ' + Param, ccCyan);
+      WriteColoredLn('Processing argument ' + IntToStr(i) + ': ' + Param, ccCyan);
 
     // Handle --param=value format
     if StartsStr('--', Param) then
@@ -349,7 +349,7 @@ begin
       // Store flag with empty string if no value is provided
       FParsedParams.Values[Param] := Value;
       if FDebugMode then
-        TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
+        WriteColoredLn('  Added: ' + Param + ' = ' + Value, ccCyan);
     end
     // Handle -p value format
     else if StartsStr('-', Param) then
@@ -364,7 +364,7 @@ begin
       // Store flag with empty string if no value is provided
       FParsedParams.Values[Param] := Value;
       if FDebugMode then
-        TConsole.WriteLn('  Added: ' + Param + ' = ' + Value, ccCyan);
+        WriteColoredLn('  Added: ' + Param + ' = ' + Value, ccCyan);
     end;
 
     Inc(i);
@@ -372,10 +372,10 @@ begin
 
   if FDebugMode then
   begin
-    TConsole.WriteLn('Parsed parameters:', ccCyan);
+    WriteColoredLn('Parsed parameters:', ccCyan);
     for i := 0 to FParsedParams.Count - 1 do
     begin
-      TConsole.WriteLn('  ' + FParsedParams.Names[i] + ' = ' + FParsedParams.ValueFromIndex[i], ccCyan);
+      WriteColoredLn('  ' + FParsedParams.Names[i] + ' = ' + FParsedParams.ValueFromIndex[i], ccCyan);
     end;
   end;
 end;
@@ -442,7 +442,7 @@ begin
       Flag := FParsedParams.Names[i];
       if (Flag <> '') and (ValidFlags.IndexOf(Flag) = -1) then
       begin
-        TConsole.WriteLn('Error: Unknown parameter "' + Flag + '"', ccRed);
+        WriteColoredLn('Error: Unknown parameter "' + Flag + '"', ccRed);
         ShowCommandHelp(FCurrentCommand);
         Exit(False);
       end;
@@ -456,7 +456,7 @@ begin
       
       if Param.Required and not HasValue then
       begin
-        TConsole.WriteLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
+        WriteColoredLn('Error: Required parameter "' + Param.LongFlag + '" not provided', ccRed);
         ShowCommandHelp(FCurrentCommand);
         Exit(False);
       end;
@@ -553,36 +553,36 @@ var
   Cmd: ICommand;
 begin
   // Program header
-  TConsole.WriteLn(FName + ' version ' + FVersion);
-  TConsole.WriteLn('');
+  WriteColoredLn(FName + ' version ' + FVersion);
+  WriteColoredLn('');
 
   // Basic usage
-  TConsole.WriteLn('Usage:', ccCyan);
-  TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
-  TConsole.WriteLn('');
+  WriteColoredLn('Usage:', ccCyan);
+  WriteColoredLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
+  WriteColoredLn('');
 
   // Available commands
-  TConsole.WriteLn('Commands:', ccCyan);
+  WriteColoredLn('Commands:', ccCyan);
   for Cmd in FCommands do
-    TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
-  TConsole.WriteLn('');
+    WriteColoredLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
+  WriteColoredLn('');
 
   // Global options
-  TConsole.WriteLn('Global Options:', ccCyan);
-  TConsole.WriteLn('  -h, --help           Show this help message');
-  TConsole.WriteLn('  --help-complete      Show complete reference for all commands');
-  TConsole.WriteLn('  -v, --version        Show version information');
-  TConsole.WriteLn('');
+  WriteColoredLn('Global Options:', ccCyan);
+  WriteColoredLn('  -h, --help           Show this help message');
+  WriteColoredLn('  --help-complete      Show complete reference for all commands');
+  WriteColoredLn('  -v, --version        Show version information');
+  WriteColoredLn('');
 
   // Examples section
-  TConsole.WriteLn('Examples:', ccCyan);
-  TConsole.WriteLn('  Get help for commands:');
-  TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
-  TConsole.WriteLn('');
-  TConsole.WriteLn('  Available command help:');
+  WriteColoredLn('Examples:', ccCyan);
+  WriteColoredLn('  Get help for commands:');
+  WriteColoredLn('    ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
+  WriteColoredLn('');
+  WriteColoredLn('  Available command help:');
   for Cmd in FCommands do
-    TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + Cmd.Name + ' --help');
-  TConsole.WriteLn('');
+    WriteColoredLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + Cmd.Name + ' --help');
+  WriteColoredLn('');
 end;
 
 { ShowCommandHelp: Displays detailed help for a specific command
@@ -616,24 +616,24 @@ begin
     CommandPath := Command.Name;
 
   // Show usage and description
-  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
-  TConsole.WriteLn('');
-  TConsole.WriteLn(Command.Description);
+  WriteColoredLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' [options]');
+  WriteColoredLn('');
+  WriteColoredLn(Command.Description);
   
   // List subcommands if any
   if Length(Command.SubCommands) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Commands:', ccCyan);
+    WriteColoredLn('');
+    WriteColoredLn('Commands:', ccCyan);
     for SubCmd in Command.SubCommands do
-      TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
+      WriteColoredLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
   end;
   
   // Show parameters if any
   if Length(Command.Parameters) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Options:', ccCyan);
+    WriteColoredLn('');
+    WriteColoredLn('Options:', ccCyan);
     for Param in Command.Parameters do
     begin
       if Param.Required then
@@ -641,33 +641,33 @@ begin
       else
         RequiredText := '';
         
-      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
+      WriteColoredLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
         Param.Description + RequiredText);
       
       if Param.DefaultValue <> '' then
-        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+        WriteColoredLn('      Default: ' + Param.DefaultValue);
     end;
   end;
 
   // Show examples for commands with subcommands
   if Length(Command.SubCommands) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Examples:', ccCyan);
-    TConsole.WriteLn('  Get help for commands:');
-    TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' <command> --help');
-    TConsole.WriteLn('');
-    TConsole.WriteLn('  Available command help:');
+    WriteColoredLn('');
+    WriteColoredLn('Examples:', ccCyan);
+    WriteColoredLn('  Get help for commands:');
+    WriteColoredLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' <command> --help');
+    WriteColoredLn('');
+    WriteColoredLn('  Available command help:');
     for SubCmd in Command.SubCommands do
-      TConsole.WriteLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
-    TConsole.WriteLn('');
+      WriteColoredLn('    ' + ExtractFileName(ParamStr(0)) + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
+    WriteColoredLn('');
   end;
 end;
 
 { ShowVersion: Displays application version }
 procedure TCLIApplication.ShowVersion;
 begin
-  TConsole.WriteLn(FName + ' version ' + FVersion);
+  WriteColoredLn(FName + ' version ' + FVersion);
 end;
 
 { ShowCompleteHelp: Displays complete help for all commands
@@ -689,36 +689,36 @@ begin
   if Command = nil then
   begin
     // Show program header and global information
-    TConsole.WriteLn(FName + ' version ' + FVersion);
-    TConsole.WriteLn('');
-    TConsole.WriteLn('DESCRIPTION', ccCyan);
-    TConsole.WriteLn('  Complete reference for all commands and options');
-    TConsole.WriteLn('');
-    TConsole.WriteLn('GLOBAL OPTIONS', ccCyan);
-    TConsole.WriteLn('  -h, --help           Show command help');
-    TConsole.WriteLn('  --help-complete      Show this complete reference');
-    TConsole.WriteLn('  -v, --version        Show version information');
-    TConsole.WriteLn('');
-    TConsole.WriteLn('COMMANDS', ccCyan);
+    WriteColoredLn(FName + ' version ' + FVersion);
+    WriteColoredLn('');
+    WriteColoredLn('DESCRIPTION', ccCyan);
+    WriteColoredLn('  Complete reference for all commands and options');
+    WriteColoredLn('');
+    WriteColoredLn('GLOBAL OPTIONS', ccCyan);
+    WriteColoredLn('  -h, --help           Show command help');
+    WriteColoredLn('  --help-complete      Show this complete reference');
+    WriteColoredLn('  -v, --version        Show version information');
+    WriteColoredLn('');
+    WriteColoredLn('COMMANDS', ccCyan);
     
     // Show all commands recursively
     for i := 0 to FCommands.Count - 1 do
     begin
       if i > 0 then
-        TConsole.WriteLn('');
+        WriteColoredLn('');
       ShowCompleteHelp(Indent + '  ', FCommands[i]);
     end;
   end
   else
   begin
     // Show command details
-    TConsole.WriteLn(Indent + Command.Name + ' - ' + Command.Description);
+    WriteColoredLn(Indent + Command.Name + ' - ' + Command.Description);
     
     // Show command parameters
     if Length(Command.Parameters) > 0 then
     begin
-      TConsole.WriteLn('');
-      TConsole.WriteLn(Indent + 'OPTIONS:', ccCyan);
+      WriteColoredLn('');
+      WriteColoredLn(Indent + 'OPTIONS:', ccCyan);
       for Param in Command.Parameters do
       begin
         if Param.Required then
@@ -726,19 +726,19 @@ begin
         else
           RequiredText := '';
           
-        TConsole.WriteLn(Indent + '  ' + Param.ShortFlag + ', ' + 
+        WriteColoredLn(Indent + '  ' + Param.ShortFlag + ', ' + 
           PadRight(Param.LongFlag, 20) + Param.Description + RequiredText);
         
         if Param.DefaultValue <> '' then
-          TConsole.WriteLn(Indent + '      Default: ' + Param.DefaultValue);
+          WriteColoredLn(Indent + '      Default: ' + Param.DefaultValue);
       end;
     end;
     
     // Show subcommands recursively
     if Length(Command.SubCommands) > 0 then
     begin
-      TConsole.WriteLn('');
-      TConsole.WriteLn(Indent + 'SUBCOMMANDS:', ccCyan);
+      WriteColoredLn('');
+      WriteColoredLn(Indent + 'SUBCOMMANDS:', ccCyan);
       for Cmd in Command.SubCommands do
         ShowCompleteHelp(Indent + '  ', Cmd);
     end;
@@ -747,9 +747,9 @@ begin
   // Show help usage hint at root level
   if (Command = nil) and (FCommands.Count > 0) then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('For more details on a specific command, use:');
-    TConsole.WriteLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
+    WriteColoredLn('');
+    WriteColoredLn('For more details on a specific command, use:');
+    WriteColoredLn('  ' + ExtractFileName(ParamStr(0)) + ' <command> --help');
   end;
 end;
 
@@ -771,13 +771,13 @@ var
   Cmd: ICommand;
 begin
   // Show minimal help for error cases
-  TConsole.WriteLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
-  TConsole.WriteLn('');
-  TConsole.WriteLn('Commands:', ccCyan);
+  WriteColoredLn('Usage: ' + ExtractFileName(ParamStr(0)) + ' <command> [options]');
+  WriteColoredLn('');
+  WriteColoredLn('Commands:', ccCyan);
   for Cmd in FCommands do
-    TConsole.WriteLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
-  TConsole.WriteLn('');
-  TConsole.WriteLn('Use --help for more information.');
+    WriteColoredLn('  ' + PadRight(Cmd.Name, 15) + Cmd.Description);
+  WriteColoredLn('');
+  WriteColoredLn('Use --help for more information.');
 end;
 
 { CreateCLIApplication: Factory function to create new CLI application
@@ -807,21 +807,21 @@ begin
     ptInteger:
       if not TryStrToInt(Value, IntValue) then
       begin
-        TConsole.WriteLn(Format('Error: Parameter "%s" must be an integer', [Param.LongFlag]), ccRed);
+        WriteColoredLn(Format('Error: Parameter "%s" must be an integer', [Param.LongFlag]), ccRed);
         Result := False;
       end;
       
     ptFloat:
       if not TryStrToFloat(Value, FloatValue) then
       begin
-        TConsole.WriteLn(Format('Error: Parameter "%s" must be a float', [Param.LongFlag]), ccRed);
+        WriteColoredLn(Format('Error: Parameter "%s" must be a float', [Param.LongFlag]), ccRed);
         Result := False;
       end;
       
     ptBoolean:
       if not (SameText(Value, 'true') or SameText(Value, 'false')) then
       begin
-        TConsole.WriteLn(Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag]), ccRed);
+        WriteColoredLn(Format('Error: Parameter "%s" must be "true" or "false"', [Param.LongFlag]), ccRed);
         Result := False;
       end;
       
@@ -829,7 +829,7 @@ begin
       if not (StartsStr('http://', Value) or StartsStr('https://', Value) or
              StartsStr('git://', Value) or StartsStr('ssh://', Value)) then
       begin
-        TConsole.WriteLn(Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://',
+        WriteColoredLn(Format('Error: Parameter "%s" must be a valid URL starting with http://, https://, git://, or ssh://',
           [Param.LongFlag]), ccRed);
         Result := False;
       end;
@@ -853,7 +853,7 @@ begin
             end;
             
           if not Result then
-            TConsole.WriteLn(Format('Error: Parameter "%s" must be one of: %s',
+            WriteColoredLn(Format('Error: Parameter "%s" must be one of: %s',
               [Param.LongFlag, Param.AllowedValues]), ccRed);
         finally
           AllowedValues.Free;
@@ -868,7 +868,7 @@ begin
         
         if not TryStrToDateTime(Value, DateTimeValue) then
         begin
-          TConsole.WriteLn(Format('Error: Parameter "%s" must be in format YYYY-MM-DD HH:MM',
+          WriteColoredLn(Format('Error: Parameter "%s" must be in format YYYY-MM-DD HH:MM',
             [Param.LongFlag]), ccRed);
           Result := False;
         end;

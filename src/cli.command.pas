@@ -483,31 +483,31 @@ begin
     CommandPath := Name;
   
   // Show usage and description
-  TConsole.WriteLn('Usage: ' + ExeName + ' ' + CommandPath + ' [options]');
-  TConsole.WriteLn('');
-  TConsole.WriteLn(Description);
+  WriteColoredLn('Usage: ' + ExeName + ' ' + CommandPath + ' [options]');
+  WriteColoredLn('');
+  WriteColoredLn(Description);
   
   // Show subcommands if any
   if Length(SubCommands) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Commands:', ccCyan);
+    WriteColoredLn('');
+    WriteColoredLn('Commands:', ccCyan);
     for SubCmd in SubCommands do
-      TConsole.WriteLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
+      WriteColoredLn('  ' + PadRight(SubCmd.Name, 15) + SubCmd.Description);
       
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Examples:', ccCyan);
-    TConsole.WriteLn('  ' + ExeName + ' ' + CommandPath + ' <command> --help');
-    TConsole.WriteLn('    Show help for a specific command');
+    WriteColoredLn('');
+    WriteColoredLn('Examples:', ccCyan);
+    WriteColoredLn('  ' + ExeName + ' ' + CommandPath + ' <command> --help');
+    WriteColoredLn('    Show help for a specific command');
     for SubCmd in SubCommands do
-      TConsole.WriteLn('  ' + ExeName + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
+      WriteColoredLn('  ' + ExeName + ' ' + CommandPath + ' ' + SubCmd.Name + ' --help');
   end;
   
   // Show parameters if any
   if Length(Parameters) > 0 then
   begin
-    TConsole.WriteLn('');
-    TConsole.WriteLn('Options:', ccCyan);
+    WriteColoredLn('');
+    WriteColoredLn('Options:', ccCyan);
     for Param in Parameters do
     begin
       if Param.Required then
@@ -515,11 +515,11 @@ begin
       else
         RequiredText := '';
         
-      TConsole.WriteLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
+      WriteColoredLn('  ' + Param.ShortFlag + ', ' + PadRight(Param.LongFlag, 20) +
         Param.Description + RequiredText);
       
       if Param.DefaultValue <> '' then
-        TConsole.WriteLn('      Default: ' + Param.DefaultValue);
+        WriteColoredLn('      Default: ' + Param.DefaultValue);
     end;
   end;
 end;
