@@ -1,0 +1,6 @@
+*           text eol=lf
+*.inc       text eol=lf diff=pascal
+*.pp        text eol=lf diff=pascal
+*.pas       text eol=lf diff=pascal
+*.lpr       text eol=lf diff=pascal
+*.lpi       text eol=lf diff=xml
