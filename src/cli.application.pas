@@ -620,6 +620,8 @@ begin
   TConsole.WriteLn('Global Options:', ccCyan);
   TConsole.WriteLn('  -h, --help           Show this help message');
   TConsole.WriteLn('  --help-complete      Show complete reference for all commands');
+  TConsole.WriteLn('  --completion-file    Output Bash completion script (redirect to a file)');
+  TConsole.WriteLn('  --completion-file-pwsh  Output PowerShell completion script (redirect to a .ps1 file)');
   TConsole.WriteLn('  -v, --version        Show version information');
   TConsole.WriteLn('');
 
@@ -746,6 +748,8 @@ begin
     TConsole.WriteLn('GLOBAL OPTIONS', ccCyan);
     TConsole.WriteLn('  -h, --help           Show command help');
     TConsole.WriteLn('  --help-complete      Show this complete reference');
+    TConsole.WriteLn('  --completion-file    Output Bash completion script (use --completion-file > myapp-completion.sh)');
+    TConsole.WriteLn('  --completion-file-pwsh  Output PowerShell completion script (use --completion-file-pwsh > myapp-completion.ps1)');
     TConsole.WriteLn('  -v, --version        Show version information');
     TConsole.WriteLn('');
     TConsole.WriteLn('COMMANDS', ccCyan);
@@ -988,7 +992,7 @@ begin
     RootSubNames := RootSubNames + Cmd.Name;
   end;
   // Add global flags for root only
-  RootParamFlags := '--help --help-complete --version --completion-file -h';
+  RootParamFlags := '--help --help-complete --version --completion-file --completion-file-pwsh -h';
   // Use a special root key for Bash associative array (no leading spaces)
   TConsole.WriteLn('tree["__root__|subcommands"]="' + RootSubNames + '"');
   TConsole.WriteLn('tree["__root__|params"]="' + RootParamFlags + '"');
@@ -1099,7 +1103,7 @@ begin
     if RootSubNames <> '' then RootSubNames := RootSubNames + ' ';
     RootSubNames := RootSubNames + Cmd.Name;
   end;
-  RootParamFlags := '--help --help-complete --version --completion-file -h';
+  RootParamFlags := '--help --help-complete --version --completion-file --completion-file-pwsh -h';
   TConsole.WriteLn('$tree["__root__|subcommands"] = "' + RootSubNames + '"');
   TConsole.WriteLn('$tree["__root__|params"] = "' + RootParamFlags + '"');
 
