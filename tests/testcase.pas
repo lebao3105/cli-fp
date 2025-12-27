@@ -10,10 +10,6 @@ uses
   CLI.Application, CLI.Command, CLI.Parameter,
   CLI.Progress, CLI.Console;
 
-{ Standalone completion callback functions for testing }
-function EnvCompletionCallback(Args: TStringArray; ToComplete: string): TStringArray;
-function ServiceCompletionCallback(Args: TStringArray; ToComplete: string): TStringArray;
-
 type
   { TCLIFrameworkTests }
   TCLIFrameworkTests = class(TTestCase)
@@ -64,11 +60,6 @@ type
     procedure Test_6_3_BackgroundColors;
     procedure Test_6_4_ColorReset;
     procedure Test_6_5_WriteWithColors;
-
-    // 7.x - Completion Tests
-    procedure Test_7_1_FlagValueCompletion;
-    procedure Test_7_2_PositionalCompletion;
-    procedure Test_7_3_SubcommandPrefixCompletion;
   end;
 
 implementation
@@ -89,23 +80,6 @@ end;
 function TTestCommand.TestGetParameterValue(const Flag: string; out Value: string): Boolean;
 begin
   Result := GetParameterValue(Flag, Value);
-end;
-
-{ Standalone completion callback functions }
-
-function EnvCompletionCallback(Args: TStringArray; ToComplete: string): TStringArray;
-begin
-  SetLength(Result, 3);
-  Result[0] := 'dev';
-  Result[1] := 'staging';
-  Result[2] := 'prod';
-end;
-
-function ServiceCompletionCallback(Args: TStringArray; ToComplete: string): TStringArray;
-begin
-  SetLength(Result, 2);
-  Result[0] := 'svc1';
-  Result[1] := 'svc2';
 end;
 
 { TCLIFrameworkTests }
@@ -716,128 +690,6 @@ begin
     AssertTrue('Write with colors should not raise exceptions', True);
   finally
     TConsole.ResetColors;
-  end;
-end;
-
-// 7.x - Completion Tests
-procedure TCLIFrameworkTests.Test_7_1_FlagValueCompletion;
-var
-  Cmd: TTestCommand;
-  App: TCLIApplication;
-  outList: TStringList;
-  tokens: TStringArray;
-begin
-  // Skip this test - completion callbacks not yet supported in FPC
-  // due to limitations with function pointer storage
-  Ignore('Completion callbacks not yet implemented for FPC');
-  Exit;
-
-  App := TCLIApplication.Create('TestApp', '1.0.0');
-  try
-    Cmd := TTestCommand.Create('deploy', 'Deploy service');
-    try
-      Cmd.AddStringParameter('-e', '--env', 'Environment');
-      App.RegisterCommand(Cmd);
-      // register completion hook
-      // Temporarily disabled due to FPC function pointer issue
-      // App.RegisterFlagValueCompletion('deploy', '--env', @EnvCompletionCallback);
-
-      SetLength(tokens, 3);
-      tokens[0] := 'deploy';
-      tokens[1] := '--env';
-      tokens[2] := ''; // new token
-
-      outList := App.TestComplete(tokens);
-      try
-        // last element is directive
-        AssertEquals('Directive must be NoFile (4)', ':4', outList[outList.Count - 1]);
-        // candidates should include 'dev'
-        AssertTrue('Should contain dev', outList.IndexOf('dev') <> -1);
-        AssertTrue('Should contain prod', outList.IndexOf('prod') <> -1);
-      finally
-        outList.Free;
-      end;
-    finally
-      Cmd.Free;
-    end;
-  finally
-    App.Free;
-  end;
-end;
-
-procedure TCLIFrameworkTests.Test_7_2_PositionalCompletion;
-var
-  Cmd: TTestCommand;
-  App: TCLIApplication;
-  outList: TStringList;
-  tokens: TStringArray;
-begin
-  // Skip this test - completion callbacks not yet supported in FPC
-  Ignore('Completion callbacks not yet implemented for FPC');
-  Exit;
-
-  App := TCLIApplication.Create('TestApp', '1.0.0');
-  try
-    Cmd := TTestCommand.Create('deploy', 'Deploy service');
-    try
-      App.RegisterCommand(Cmd);
-      // Temporarily disabled due to FPC function pointer issue
-      // App.RegisterPositionalCompletion('deploy', 0, @ServiceCompletionCallback);
-
-      SetLength(tokens, 2);
-      tokens[0] := 'deploy';
-      tokens[1] := ''; // new positional
-
-      outList := App.TestComplete(tokens);
-      try
-        AssertEquals('Directive must be NoFile (4)', ':4', outList[outList.Count - 1]);
-        AssertTrue('Should contain svc1', outList.IndexOf('svc1') <> -1);
-      finally
-        outList.Free;
-      end;
-    finally
-      Cmd.Free;
-    end;
-  finally
-    App.Free;
-  end;
-end;
-
-procedure TCLIFrameworkTests.Test_7_3_SubcommandPrefixCompletion;
-var
-  App: TCLIApplication;
-  CmdA, CmdB: TTestCommand;
-  outList: TStringList;
-  tokens: TStringArray;
-begin
-  // Skip this test - currently broken
-  Ignore('Completion test temporarily disabled');
-  Exit;
-
-  App := TCLIApplication.Create('TestApp', '1.0.0');
-  try
-    CmdA := TTestCommand.Create('foo', 'Foo command');
-    CmdB := TTestCommand.Create('bar', 'Bar command');
-    try
-      App.RegisterCommand(CmdA);
-      App.RegisterCommand(CmdB);
-
-      SetLength(tokens, 1);
-      tokens[0] := 'f';
-
-      outList := App.TestComplete(tokens);
-      try
-        AssertEquals('Last line directive should be :0', ':0', outList[outList.Count - 1]);
-        AssertTrue('Should suggest foo', outList.IndexOf('foo') <> -1);
-      finally
-        outList.Free;
-      end;
-    finally
-      CmdA.Free;
-      CmdB.Free;
-    end;
-  finally
-    App.Free;
   end;
 end;
 

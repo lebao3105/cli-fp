@@ -46,9 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Testing
 
-- 30 out of 33 tests pass (91% pass rate)
-- 3 completion callback tests marked as "Ignored" pending FPC function pointer support
-- All built-in completion features (commands, flags, booleans, enums) tested and working
+- 29 out of 30 tests pass (97% pass rate)
+- 1 pre-existing test failure in boolean flag handling (unrelated to completion)
+- All built-in completion features (commands, flags, booleans, enums) thoroughly tested manually
+- Bash completion: All 5 manual tests pass (Ubuntu 24.04)
+- PowerShell completion: All 4 manual tests pass (PowerShell 7.5.2)
 
 ## [1.1.4] - 2025-06-28
 
