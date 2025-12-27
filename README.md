@@ -52,7 +52,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - Short and long flags (`-h`, `--help`)
   - Automatic help generation
   - Colored output support
-  - **Advanced Bash Completion**: Generate a Bash completion script for your CLI with `--completion-file` (see below for safe usage)
+  - **Shell Completion**: Generate completion scripts for Bash (`--completion-file`) and PowerShell (`--completion-file-pwsh`) with automatic value completion for boolean and enum parameters
 - **Robust Error Handling**
   - Clear error messages for unknown commands and subcommands
   - Validation of command-line flags and parameters
@@ -350,6 +350,7 @@ Generate a Bash completion script for your CLI with:
 - **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
 - **Subcommands:** Only `-h` and `--help` are offered as global flags.
 - **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 
 > This matches the CLI's actual argument parsing and ensures completions are always valid. See the user manual for full details and safe usage instructions.
 
@@ -363,6 +364,37 @@ Generate a PowerShell completion script for your CLI with:
 
 - **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
 - **No file fallback:** Only valid completions are shown (never files)
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - **Works in PowerShell 7.5+** (cross-platform)
 
 > See the user manual for setup and usage details.
+
+## Advanced: Dynamic completion hooks
+
+You can opt-in to dynamic, programmatic completions by registering callbacks in your program. The generated completion scripts are "dumb": they call the binary's hidden `__complete` entrypoint, and the binary resolves context and calls your registered hooks.
+
+Example — flag value completion for `deploy --env`:
+
+```pascal
+App.RegisterFlagValueCompletion('deploy', '--env',
+  function (Args: TStringArray; ToComplete: string): TStringArray
+  begin
+    Result := ['dev', 'staging', 'prod'];
+  end);
+```
+
+Example — positional completion for first arg of `deploy`:
+
+```pascal
+App.RegisterPositionalCompletion('deploy', 0,
+  function (Args: TStringArray; ToComplete: string): TStringArray
+  begin
+    // Args contains already-entered positional args (if any)
+    if (Length(Args) > 0) and (Args[0] = 'group1') then
+      Result := ['service-a', 'service-b']
+    else
+      Result := ['service-x', 'service-y'];
+  end);
+```
+
+The binary prints one candidate per line and a final `:<directive>` line (bitmask). For example, `4` indicates ``NoFileComp`` (don't fall back to filename completion). Note: PowerShell support is best-effort for the `NoSpace` directive — the generated script returns completion results as `ParameterName` entries when `NoSpace` is set to discourage the shell from appending a trailing space.

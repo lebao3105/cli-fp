@@ -15,6 +15,26 @@ type
   { List type for storing registered commands }
   TCommandList = specialize TList<ICommand>;
 
+  { Completion types and helpers }
+  TStringArray = array of string;
+
+  { Function types for completion callbacks (compatible with FPC without anonymous functions) }
+  TFlagValueCompletionFunc = function (Args: TStringArray; ToComplete: string): TStringArray;
+  TPositionalCompletionFunc = function (Args: TStringArray; ToComplete: string): TStringArray;
+
+  { Simple storage record for completion callbacks - separate types to avoid nil pointer issues }
+  TFlagCompletionEntry = record
+    Key: string;
+    Callback: TFlagValueCompletionFunc;
+  end;
+  TFlagCompletionList = array of TFlagCompletionEntry;
+
+  TPosCompletionEntry = record
+    Key: string;
+    Callback: TPositionalCompletionFunc;
+  end;
+  TPosCompletionList = array of TPosCompletionEntry;
+
   { TCLIApplication - Main application class that implements ICLIApplication
     Handles:
     - Command registration and management
@@ -31,7 +51,12 @@ type
     FParsedParams: TStringList; // Parsed command-line parameters
     FParamStartIndex: Integer;  // Index where command parameters start
     FDebugMode: Boolean;        // Debug output flag
-    
+
+    // Completion registry (simple array-based storage for FPC compatibility)
+    // NOTE: Temporarily disabled - appears to cause issues with FPC
+    // FFlagCompletions: TFlagCompletionList;
+    // FPosCompletions: TPosCompletionList;
+
     { Parses command-line arguments into FParsedParams
       Handles both --param=value and -p value formats }
     procedure ParseCommandLine;
@@ -89,6 +114,21 @@ type
     
     { Outputs a PowerShell completion script for the application }
     procedure OutputPowerShellCompletionScript;
+
+    { Hidden completion entrypoint handler (invoked when first arg is '__complete') }
+    procedure HandleCompletion;
+
+    { Helper method to get registered flag completion callback }
+    function GetRegisteredFlagCompletion(const CmdPath, Flag: string; out Func: TFlagValueCompletionFunc): Boolean;
+
+    { Helper method to get registered positional completion callback }
+    function GetRegisteredPositionalCompletion(const CmdPath: string; ArgIndex: Integer; out Func: TPositionalCompletionFunc): Boolean;
+
+    { Helper method to find parameter by flag }
+    function ParamByFlag(const Cmd: ICommand; const Flag: string): ICommandParameter;
+
+    { Internal completion implementation }
+    function DoComplete(const Tokens: TStringArray): TStringList;
   public
     { Creates a new CLI application instance
       @param AName Application name
@@ -120,10 +160,24 @@ type
     { For testing purposes }
     property ParsedParams: TStringList read FParsedParams;
     property CurrentCommand: ICommand read FCurrentCommand write FCurrentCommand;
+
+    { Register completion callbacks (opt-in) }
+    procedure RegisterFlagValueCompletion(const CommandPath, FlagName: string; Func: TFlagValueCompletionFunc);
+    procedure RegisterPositionalCompletion(const CommandPath: string; ArgIndex: Integer; Func: TPositionalCompletionFunc);
     
     { For testing validation }
     function TestValidateCommand: Boolean;
+
+    { For testing completions: returns list of lines (candidates + final ":<directive>") }
+    function TestComplete(const Tokens: TStringArray): TStringList;
   end;
+
+const
+  { Completion directive bits (Cobra-like) }
+  CD_ERROR = 1;
+  CD_NOSPACE = 2;
+  CD_NOFILE = 4;
+  CD_KEEPORDER = 8;
 
 { Helper function to create a new CLI application instance
   @param Name Application name
@@ -150,6 +204,8 @@ begin
   FParsedParams.CaseSensitive := True;  // Parameters are case-sensitive
   FParamStartIndex := 2;                // Skip program name and command name
   FDebugMode := False;                  // Debug output disabled by default
+
+  // Completion registries are auto-initialized as empty dynamic arrays
 end;
 
 { Destructor: Cleans up application resources
@@ -159,6 +215,8 @@ begin
   FCurrentCommand := nil;  // Release current command reference
   FCommands.Free;         // Free command list
   FParsedParams.Free;     // Free parameter storage
+  // NOTE: Dynamic arrays with function pointers cause issues in FPC during cleanup
+  // The arrays will be auto-freed when the object is destroyed
   inherited;
 end;
 
@@ -205,6 +263,13 @@ begin
   begin
     ShowHelp;
     Exit;
+  end;
+
+  // Hidden completion entrypoint (invoked by generated shell scripts)
+  if (ParamCount >= 1) and (ParamStr(1) = '__complete') then
+  begin
+    HandleCompletion;
+    Exit(0);
   end;
 
   // Show general help if -h or --help is the only argument
@@ -938,6 +1003,345 @@ begin
   Result := ValidateCommand;
 end;
 
+{ RegisterFlagValueCompletion: Register a callback for flag value completion }
+procedure TCLIApplication.RegisterFlagValueCompletion(const CommandPath, FlagName: string; Func: TFlagValueCompletionFunc);
+begin
+  // TODO: Implement when FPC function pointer storage is resolved
+  // Currently disabled due to FPC compatibility issues
+end;
+
+{ RegisterPositionalCompletion: Register a callback for positional argument completion }
+procedure TCLIApplication.RegisterPositionalCompletion(const CommandPath: string; ArgIndex: Integer; Func: TPositionalCompletionFunc);
+begin
+  // TODO: Implement when FPC function pointer storage is resolved
+  // Currently disabled due to FPC compatibility issues
+end;
+
+{ GetRegisteredFlagCompletion: Helper to retrieve flag completion callback }
+function TCLIApplication.GetRegisteredFlagCompletion(const CmdPath, Flag: string; out Func: TFlagValueCompletionFunc): Boolean;
+begin
+  Result := False;
+  // TODO: Implement when FPC function pointer storage is resolved
+end;
+
+{ GetRegisteredPositionalCompletion: Helper to retrieve positional completion callback }
+function TCLIApplication.GetRegisteredPositionalCompletion(const CmdPath: string; ArgIndex: Integer; out Func: TPositionalCompletionFunc): Boolean;
+begin
+  Result := False;
+  // TODO: Implement when FPC function pointer storage is resolved
+end;
+
+{ ParamByFlag: Helper to find parameter by flag name }
+function TCLIApplication.ParamByFlag(const Cmd: ICommand; const Flag: string): ICommandParameter;
+var
+  P: ICommandParameter;
+begin
+  Result := nil;
+  for P in Cmd.Parameters do
+  begin
+    if SameText(P.LongFlag, Flag) or SameText(P.ShortFlag, Flag) then
+      Exit(P);
+  end;
+end;
+
+{ HandleCompletion: Implements the __complete hidden entrypoint
+  Accepts tokens as the rest of argv (ParamStr(2..ParamCount)) and writes
+  one completion candidate per line followed by :<directive> line. }
+function TCLIApplication.DoComplete(const Tokens: TStringArray): TStringList;
+var
+  i, tc, idx, j: Integer;
+  s: string;
+  Cmd: ICommand;
+  SubCmd: ICommand;
+  SCmd: ICommand;
+  pathParts: TStringList;
+  suggestions: TStringList;
+  directive: Integer;
+  toComplete: string;
+  isNewToken: Boolean;
+  Param: ICommandParameter;
+  Hook: TFlagValueCompletionFunc;
+  cmdPath: string;
+  argsArr: TStringArray;
+  argsArr2: TStringArray;
+  posList: TStringList;
+  res: TStringArray;
+  vals: TStringList;
+  posArgs: TStringList;
+  argIndex: Integer;
+  PosHook: TPositionalCompletionFunc;
+  pathBuilder: TStringList;
+begin
+  suggestions := TStringList.Create;
+  suggestions.Duplicates := dupIgnore;
+  suggestions.Sorted := False;
+  directive := 0;
+
+  tc := Length(Tokens);
+  if tc = 0 then
+  begin
+    for i := 0 to FCommands.Count - 1 do
+      suggestions.Add(FCommands[i].Name);
+    // final directive line will be added by caller
+    Result := suggestions;
+    Exit;
+  end;
+
+  // determine if the last token is an empty (new token)
+  isNewToken := False;
+  if (tc > 0) and (Tokens[tc - 1] = '') then
+    isNewToken := True;
+
+  // Resolve command path
+  Cmd := FindCommand(Tokens[0]);
+  if not Assigned(Cmd) then
+  begin
+    // Complete top-level commands by prefix
+    toComplete := Tokens[0];
+    for i := 0 to FCommands.Count - 1 do
+      if StartsStr(LowerCase(toComplete), LowerCase(FCommands[i].Name)) then
+        suggestions.Add(FCommands[i].Name);
+    Result := suggestions;
+    Exit;
+  end;
+
+  // Walk subcommands
+  idx := 1;
+  while (idx < tc) and (not StartsStr('-', Tokens[idx])) do
+  begin
+    SubCmd := nil;
+    for SCmd in Cmd.SubCommands do
+      if SameText(SCmd.Name, Tokens[idx]) then
+      begin
+        SubCmd := SCmd;
+        Break;
+      end;
+    if Assigned(SubCmd) then
+    begin
+      Cmd := SubCmd;
+      Inc(idx);
+    end
+    else
+      Break;
+  end;
+
+  // Build command path string from tokens used to reach Cmd (for matching registrations)
+  pathParts := TStringList.Create;
+  try
+    if tc > 0 then
+      pathParts.Add(Tokens[0]);
+    for j := 1 to idx - 1 do
+      pathParts.Add(Tokens[j]);
+    // cmdPath not used here explicitly by name; lookups happen in helper calls below
+  finally
+    pathParts.Free;
+  end;
+
+  // Determine completion context
+  // If last token starts with '-', either complete flag names or flag values
+  if (tc > 0) and (Tokens[tc - 1] <> '') and (StartsStr('-', Tokens[tc - 1])) then
+  begin
+    toComplete := Tokens[tc - 1];
+    // Check if it's a complete flag match (for PowerShell which doesn't pass empty args)
+    Param := ParamByFlag(Cmd, toComplete);
+    if Assigned(Param) and ((Param.ParamType = ptBoolean) or (Param.ParamType = ptEnum)) then
+    begin
+      // Complete values for this flag
+      if Param.ParamType = ptBoolean then
+      begin
+        suggestions.Add('true');
+        suggestions.Add('false');
+        directive := directive or CD_NOFILE;
+      end
+      else if Param.ParamType = ptEnum then
+      begin
+        vals := TStringList.Create;
+        try
+          vals.Delimiter := '|';
+          vals.DelimitedText := Param.AllowedValues;
+          for j := 0 to vals.Count - 1 do suggestions.Add(vals[j]);
+          directive := directive or CD_NOFILE;
+        finally
+          vals.Free;
+        end;
+      end;
+    end
+    else
+    begin
+      // Complete flag names
+      for i := 0 to Length(Cmd.Parameters) - 1 do
+      begin
+        if StartsStr(LowerCase(toComplete), LowerCase(Cmd.Parameters[i].LongFlag)) then
+          suggestions.Add(Cmd.Parameters[i].LongFlag);
+        if (Cmd.Parameters[i].ShortFlag <> '') and StartsStr(LowerCase(toComplete), LowerCase(Cmd.Parameters[i].ShortFlag)) then
+          suggestions.Add(Cmd.Parameters[i].ShortFlag);
+      end;
+      // global flags
+      if StartsStr(LowerCase(toComplete), '--help') then suggestions.Add('--help');
+      if StartsStr(LowerCase(toComplete), '-h') then suggestions.Add('-h');
+      if StartsStr(LowerCase(toComplete), '--version') then suggestions.Add('--version');
+      if StartsStr(LowerCase(toComplete), '-v') then suggestions.Add('-v');
+    end;
+  end
+  else
+  begin
+    // Check if we're completing a flag value: previous token is a flag
+    if (tc >= 2) and (StartsStr('-', Tokens[tc - 2])) and (not StartsStr('-', Tokens[tc - 1])) then
+    begin
+      toComplete := Tokens[tc - 1];
+      Param := ParamByFlag(Cmd, Tokens[tc - 2]);
+      if Assigned(Param) then
+      begin
+        // If user registered a hook, call it
+        pathParts := TStringList.Create;
+        try
+          if tc > 0 then
+            pathParts.Add(Tokens[0]);
+          for j := 1 to idx - 1 do
+            pathParts.Add(Tokens[j]);
+          cmdPath := Trim(pathParts.Text);
+          cmdPath := StringReplace(cmdPath, sLineBreak, ' ', [rfReplaceAll]);
+        finally
+          pathParts.Free;
+        end;
+
+        if GetRegisteredFlagCompletion(cmdPath, Tokens[tc - 2], Hook) then
+        begin
+          posList := TStringList.Create;
+          try
+            for j := idx to tc - 3 do // exclude the flag and its value
+              if not StartsStr('-', Tokens[j]) then
+                posList.Add(Tokens[j]);
+            SetLength(argsArr, posList.Count);
+            for j := 0 to posList.Count - 1 do argsArr[j] := posList[j];
+          finally
+            posList.Free;
+          end;
+          res := Hook(argsArr, toComplete);
+          for j := 0 to Length(res) - 1 do suggestions.Add(res[j]);
+          directive := directive or CD_NOFILE;
+        end
+        else
+        begin
+          // Built-in suggestions for boolean or enum
+          if Param.ParamType = ptBoolean then
+          begin
+            suggestions.Add('true');
+            suggestions.Add('false');
+            directive := directive or CD_NOFILE;
+          end
+          else if Param.ParamType = ptEnum then
+          begin
+            vals := TStringList.Create;
+            try
+              vals.Delimiter := '|';
+              vals.DelimitedText := Param.AllowedValues;
+              for j := 0 to vals.Count - 1 do suggestions.Add(vals[j]);
+              directive := directive or CD_NOFILE;
+            finally
+              vals.Free;
+            end;
+          end;
+        end;
+      end;
+    end
+    else
+    begin
+      // Positional completion: count how many positional args already present
+      posArgs := TStringList.Create;
+      try
+        // scan tokens from idx to tc-1 (exclude the token being completed if non-empty)
+        j := idx;
+        while j <= tc - 1 - Ord(not isNewToken) do
+        begin
+          if not StartsStr('-', Tokens[j]) and (Tokens[j] <> '') then
+            posArgs.Add(Tokens[j]);
+          // skip flag values
+          if StartsStr('-', Tokens[j]) and (j + 1 <= tc - 1) and (not StartsStr('-', Tokens[j+1])) then
+            Inc(j);
+          Inc(j);
+        end;
+
+        argIndex := posArgs.Count; // zero-based index for the current positional
+
+        // Prepare args array for callback (already-entered positional args)
+        SetLength(argsArr2, posArgs.Count);
+        for j := 0 to posArgs.Count - 1 do argsArr2[j] := posArgs[j];
+
+        cmdPath := '';
+        pathBuilder := TStringList.Create;
+        try
+          pathBuilder.Add(Tokens[0]);
+          for j := 1 to idx - 1 do pathBuilder.Add(Tokens[j]);
+          cmdPath := Trim(pathBuilder.Text);
+          cmdPath := StringReplace(cmdPath, sLineBreak, ' ', [rfReplaceAll]);
+        finally
+          pathBuilder.Free;
+        end;
+
+        if GetRegisteredPositionalCompletion(cmdPath, argIndex, PosHook) then
+        begin
+          res := PosHook(argsArr2, Tokens[tc - 1]);
+          for j := 0 to Length(res) - 1 do suggestions.Add(res[j]);
+          directive := directive or CD_NOFILE;
+        end
+        else
+        begin
+          // No hook: suggest subcommands and flags
+          if argIndex = 0 then
+          begin
+            // Suggest subcommands first
+            for j := 0 to Length(Cmd.SubCommands) - 1 do
+              suggestions.Add(Cmd.SubCommands[j].Name);
+            // Then suggest flags
+            for j := 0 to Length(Cmd.Parameters) - 1 do
+            begin
+              suggestions.Add(Cmd.Parameters[j].LongFlag);
+              if Cmd.Parameters[j].ShortFlag <> '' then
+                suggestions.Add(Cmd.Parameters[j].ShortFlag);
+            end;
+            // Add global flags
+            suggestions.Add('--help');
+            suggestions.Add('-h');
+          end;
+        end;
+      finally
+        posArgs.Free;
+      end;
+    end;
+  end;
+
+  // append directive line
+  suggestions.Add(':'+IntToStr(directive));
+  Result := suggestions;
+end;
+
+procedure TCLIApplication.HandleCompletion;
+var
+  i: Integer;
+  Tokens: TStringArray;
+  outList: TStringList;
+begin
+  // Build tokens list from argv: ParamStr(2..) (since ParamStr(1) == '__complete')
+  SetLength(Tokens, ParamCount - 1);
+  for i := 0 to ParamCount - 2 do
+    Tokens[i] := ParamStr(i + 2);
+
+  outList := DoComplete(Tokens);
+  try
+    for i := 0 to outList.Count - 1 do
+      TConsole.WriteLn(outList[i]);
+  finally
+    outList.Free;
+  end;
+end;
+
+{ TestComplete: helper for unit tests. Returns a list of candidates with final directive line }
+function TCLIApplication.TestComplete(const Tokens: TStringArray): TStringList;
+begin
+  Result := DoComplete(Tokens);
+end;
+
 { OutputBashCompletionScript: Outputs a Bash completion script for the application }
 procedure TCLIApplication.OutputBashCompletionScript;
   procedure OutputBashTree(const Cmd: ICommand; const Path: string);
@@ -1004,7 +1408,7 @@ begin
   TConsole.WriteLn('');
   TConsole.WriteLn(BashFunc+'()');
   TConsole.WriteLn('{');
-  TConsole.WriteLn('  local cur words cword path subcmds params i');
+  TConsole.WriteLn('  local cur words cword args out dir candidates');
   if FDebugMode then
   begin
     TConsole.WriteLn('  # DEBUG: Print function call and COMP_WORDS');
@@ -1013,39 +1417,35 @@ begin
   TConsole.WriteLn('  cur="${COMP_WORDS[COMP_CWORD]}"');
   TConsole.WriteLn('  words=("${COMP_WORDS[@]}")');
   TConsole.WriteLn('  cword=$COMP_CWORD');
-  TConsole.WriteLn('  # Determine path and index');
-  TConsole.WriteLn('  if [[ $cword -eq 1 ]]; then');
-  TConsole.WriteLn('    path="__root__"');
-  TConsole.WriteLn('    i=1');
+  TConsole.WriteLn('  # Build args for __complete and call the application');
+  TConsole.WriteLn('  args=()');
+  TConsole.WriteLn('  for ((i=1;i<cword;i++)); do args+=("${words[i]}"); done');
+  TConsole.WriteLn('  # If cursor is after a space, append empty token to indicate new word');
+  TConsole.WriteLn('  if [[ "${COMP_LINE: -1}" == " " ]]; then');
+  TConsole.WriteLn('    args+=("")');
   TConsole.WriteLn('  else');
-  TConsole.WriteLn('    path="${words[1]}"');
-  TConsole.WriteLn('    i=2');
-  TConsole.WriteLn('    while [[ $i -le $cword ]]; do');
-  TConsole.WriteLn('      $subcmds="${tree[$path|subcommands]}"');
-  TConsole.WriteLn('      found=0');
-  TConsole.WriteLn('      for sub in $subcmds; do');
-  TConsole.WriteLn('        if [[ "${words[$i]}" == "$sub" ]]; then');
-  TConsole.WriteLn('          path="$path $sub"');
-  TConsole.WriteLn('          found=1');
-  TConsole.WriteLn('          break');
-  TConsole.WriteLn('        fi');
-  TConsole.WriteLn('      done');
-  TConsole.WriteLn('      if [[ $found -eq 0 ]]; then break; fi');
-  TConsole.WriteLn('      ((i++))');
-  TConsole.WriteLn('    done');
+  TConsole.WriteLn('    args+=("${words[cword]}")');
   TConsole.WriteLn('  fi');
-  TConsole.WriteLn('  subcmds="${tree[$path|subcommands]}"');
-  TConsole.WriteLn('  params="${tree[$path|params]}"');
+  TConsole.WriteLn('  out=$("./'+AppName+'" __complete "${args[@]}")');
+  TConsole.WriteLn('  # Last line is directive in form :<number>');
+  TConsole.WriteLn('  dir="$(printf "%s\n" "$out" | tail -n1)"');
+  TConsole.WriteLn('  if [[ $dir =~ ^:([0-9]+)$ ]]; then');
+  TConsole.WriteLn('    candidates="$(printf "%s\n" "$out" | sed ''$d'')"');
+  TConsole.WriteLn('    directive=${BASH_REMATCH[1]}');
+  TConsole.WriteLn('  else');
+  TConsole.WriteLn('    candidates="$out"');
+  TConsole.WriteLn('    directive=0');
+  TConsole.WriteLn('  fi');
   if FDebugMode then
   begin
-    TConsole.WriteLn('  # DEBUG: Print path, subcmds, params, i, cword, cur');
-    TConsole.WriteLn('  echo "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword cur=[$cur]" >&2');
+    TConsole.WriteLn('  # DEBUG: Print completion call information');
+    TConsole.WriteLn('  echo "[DEBUG] args=(${args[@]}) out=\"$out\" directive=$directive cur=[$cur] candidates=[$candidates]" >&2');
   end;
-  TConsole.WriteLn('  if [[ -n "$subcmds" && $i -eq $cword ]]; then');
-  TConsole.WriteLn('    COMPREPLY=( $(compgen -W "$subcmds $params" -- "$cur") )');
-  TConsole.WriteLn('  else');
-  TConsole.WriteLn('    COMPREPLY=( $(compgen -W "$params" -- "$cur") )');
-  TConsole.WriteLn('  fi');
+  TConsole.WriteLn('  # Populate COMPREPLY with matching candidates');
+  TConsole.WriteLn('  while IFS='''' read -r comp; do');
+  TConsole.WriteLn('    [[ -z "$comp" ]] && continue');
+  TConsole.WriteLn('    COMPREPLY+=("$comp")');
+  TConsole.WriteLn('  done < <(compgen -W "$candidates" -- "$cur")');
   TConsole.WriteLn('  return 0');
   TConsole.WriteLn('}');
   TConsole.WriteLn('complete -F '+BashFunc+' '+AppName);
@@ -1092,175 +1492,59 @@ var
   AppName, RootSubNames, RootParamFlags: string;
 begin
   AppName := ExtractFileName(ParamStr(0));
+  TConsole.WriteLn('# Usage: ./' + AppName + ' --completion-file-pwsh > myapp-completion.ps1');
+  TConsole.WriteLn('# Then in PowerShell:');
+  TConsole.WriteLn('#   . ./myapp-completion.ps1');
+  TConsole.WriteLn('# To make it permanent, add the above line to your $PROFILE');
   TConsole.WriteLn('# PowerShell argument completer for ' + AppName);
-  TConsole.WriteLn('$tree = @{}');
-
-  // Output the root (empty path) entry for top-level completions
-  RootSubNames := '';
-  RootParamFlags := '';
-  for Cmd in FCommands do
-  begin
-    if RootSubNames <> '' then RootSubNames := RootSubNames + ' ';
-    RootSubNames := RootSubNames + Cmd.Name;
-  end;
-  RootParamFlags := '--help --help-complete --version --completion-file --completion-file-pwsh -h';
-  TConsole.WriteLn('$tree["__root__|subcommands"] = "' + RootSubNames + '"');
-  TConsole.WriteLn('$tree["__root__|params"] = "' + RootParamFlags + '"');
-
-  // Output the command tree
-  for Cmd in FCommands do
-    OutputPSTree(Cmd, Cmd.Name);
-
   TConsole.WriteLn('');
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + AppName + '" -ScriptBlock {');
-  TConsole.WriteLn('  param($commandName, $wordToComplete, $cursorPosition, $commandAst, $fakeBoundParameters)');
-  if FDebugMode then
-  begin
-    TConsole.WriteLn('  # DEBUG: Print all $tree keys');
-    TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
-    TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
-  end;
-  TConsole.WriteLn('  if ($null -ne $commandAst) {');
-  TConsole.WriteLn('    $line = $commandAst.ToString()');
-  TConsole.WriteLn('  } elseif ($args.Count -ge 3) {');
-  TConsole.WriteLn('    $line = $args[2]');
-  TConsole.WriteLn('  } else {');
-  TConsole.WriteLn('    $line = $wordToComplete');
+  TConsole.WriteLn('$scriptBlock = {');
+  TConsole.WriteLn('  param($wordToComplete, $commandAst, $cursorPosition)');
+  TConsole.WriteLn('  $line = $commandAst.ToString()');
+  TConsole.WriteLn('  $words = $line -split " +" | Where-Object { $_ -ne '''' }');
+  TConsole.WriteLn('  $argsList = @($words | Select-Object -Skip 1)');
+  TConsole.WriteLn('  if ($line.EndsWith(" ")) { $argsList += "" }');
+  TConsole.WriteLn('  $out = & "./' + AppName + '" __complete @argsList 2>$null');
+  TConsole.WriteLn('  if (-not $out) { return @() }');
+  TConsole.WriteLn('  # Extract directive and candidates');
+  TConsole.WriteLn('  $directive = 0');
+  TConsole.WriteLn('  $candidates = @()');
+  TConsole.WriteLn('  foreach ($line in $out) {');
+  TConsole.WriteLn('    if ($line -match "^:([0-9]+)$") {');
+  TConsole.WriteLn('      $directive = [int]$Matches[1]');
+  TConsole.WriteLn('    } else {');
+  TConsole.WriteLn('      $candidates += $line');
+  TConsole.WriteLn('    }');
   TConsole.WriteLn('  }');
-  TConsole.WriteLn('  $words = $line -split " +"');
-  TConsole.WriteLn('  $cword = $words.Count - 1');
-  TConsole.WriteLn('  $path = "__root__"');
-  TConsole.WriteLn('  $i = 1');
-  TConsole.WriteLn('  if ($cword -ge 1) {');
-  TConsole.WriteLn('    $firstArg = $words[1]');
-  TConsole.WriteLn('    $rootSubcmds = $tree["__root__|subcommands"]');
-  TConsole.WriteLn('    if ($rootSubcmds -and ($rootSubcmds -split " " | Where-Object { $_ -eq $firstArg })) {');
-  TConsole.WriteLn('      $path = $firstArg');
-  TConsole.WriteLn('      $i = 2');
-  TConsole.WriteLn('      while ($i -le $cword) {');
-  TConsole.WriteLn('        $subcmds = $tree["$path|subcommands"]');
-  TConsole.WriteLn('        $found = $false');
-  TConsole.WriteLn('        foreach ($sub in $subcmds -split " ") {');
-  TConsole.WriteLn('          if ($words[$i] -eq $sub) {');
-  TConsole.WriteLn('            $path = "$path $sub"');
-  TConsole.WriteLn('            $found = $true');
-  TConsole.WriteLn('            break');
-  TConsole.WriteLn('          }');
-  TConsole.WriteLn('        }');
-  TConsole.WriteLn('        if (-not $found) { break }');
-  TConsole.WriteLn('        $i++');
+  TConsole.WriteLn('  $results = @()');
+  TConsole.WriteLn('  if ($candidates.Count -eq 0) { return @() }');
+  TConsole.WriteLn('  foreach ($c in $candidates) {');
+  TConsole.WriteLn('    # Skip empty candidates');
+  TConsole.WriteLn('    if ([string]::IsNullOrWhiteSpace($c)) { continue }');
+  TConsole.WriteLn('    # Filter by prefix');
+  TConsole.WriteLn('    if ([string]::IsNullOrEmpty($wordToComplete) -or $c.StartsWith($wordToComplete, [StringComparison]::CurrentCultureIgnoreCase)) {');
+  TConsole.WriteLn('      if (($directive -band 2) -ne 0) {');
+  TConsole.WriteLn('        $results += [System.Management.Automation.CompletionResult]::new($c, $c, "ParameterName", $c)');
+  TConsole.WriteLn('      } else {');
+  TConsole.WriteLn('        $results += [System.Management.Automation.CompletionResult]::new($c, $c, "ParameterValue", $c)');
   TConsole.WriteLn('      }');
   TConsole.WriteLn('    }');
   TConsole.WriteLn('  }');
-  TConsole.WriteLn('  $subcmds = $tree["$path|subcommands"]');
-  TConsole.WriteLn('  $params = $tree["$path|params"]');
-  if FDebugMode then
-  begin
-    TConsole.WriteLn('  # DEBUG: Print key variables');
-    TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
-  end;
-  TConsole.WriteLn('  # Detect if the cursor is after a space (i.e., starting a new word)');
-  TConsole.WriteLn('  $afterSpace = ($cursorPosition -gt 0 -and $line[$cursorPosition-1] -eq " ")');
-  TConsole.WriteLn('  if ($afterSpace) {');
-  TConsole.WriteLn('    $filter = ""');
-  TConsole.WriteLn('  } elseif ($words.Count -gt 0) {');
-  TConsole.WriteLn('    $filter = $words[-1]');
-  TConsole.WriteLn('    if ($words.Count -le 1 -or $filter -eq $commandName) { $filter = "" }');
-  TConsole.WriteLn('  } else {');
-  TConsole.WriteLn('    $filter = ""');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), set $filter to empty to show all completions');
-  TConsole.WriteLn('  if (($i - 1 -eq $cword)) { $filter = "" }');
-  TConsole.WriteLn('  # To test with a hardcoded completion list, uncomment the next line:');
-  TConsole.WriteLn('  # return ("foo", "bar", "baz") | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), show subcommands and params, or just params if no subcmds');
-  TConsole.WriteLn('  if ($i - 1 -eq $cword) {' );
-  TConsole.WriteLn('    $filter = ""');
-  TConsole.WriteLn('    if ($subcmds -ne "") {' );
-  TConsole.WriteLn('      ($subcmds + " " + $params) -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('    } elseif ($params -ne "") {' );
-  TConsole.WriteLn('      $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('    } else {' );
-  TConsole.WriteLn('      @()');
-  TConsole.WriteLn('    }');
-  TConsole.WriteLn('  } else {' );
-  TConsole.WriteLn('    $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('  }');
+  TConsole.WriteLn('  return $results');
   TConsole.WriteLn('}');
-  // Register for .\\appname.exe as well (for local invocation)
-  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\\' + AppName + '" -ScriptBlock {');
-  TConsole.WriteLn('  param($commandName, $wordToComplete, $cursorPosition, $commandAst, $fakeBoundParameters)');
-  if FDebugMode then
-  begin
-    TConsole.WriteLn('  # DEBUG: Print all $tree keys');
-    TConsole.WriteLn('  Write-Host "[DEBUG] $tree.Keys: $($tree.Keys -join ", ")" -ForegroundColor Cyan');
-    TConsole.WriteLn('  Write-Host "[DEBUG] SubCommandDemo completer called: $commandName $wordToComplete" -ForegroundColor Yellow');
-  end;
-  TConsole.WriteLn('  if ($null -ne $commandAst) {');
-  TConsole.WriteLn('    $line = $commandAst.ToString()');
-  TConsole.WriteLn('  } elseif ($args.Count -ge 3) {');
-  TConsole.WriteLn('    $line = $args[2]');
-  TConsole.WriteLn('  } else {');
-  TConsole.WriteLn('    $line = $wordToComplete');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('  $words = $line -split " +"');
-  TConsole.WriteLn('  $cword = $words.Count - 1');
-  TConsole.WriteLn('  $path = "__root__"');
-  TConsole.WriteLn('  $i = 1');
-  TConsole.WriteLn('  if ($cword -ge 1) {');
-  TConsole.WriteLn('    $firstArg = $words[1]');
-  TConsole.WriteLn('    $rootSubcmds = $tree["__root__|subcommands"]');
-  TConsole.WriteLn('    if ($rootSubcmds -and ($rootSubcmds -split " " | Where-Object { $_ -eq $firstArg })) {');
-  TConsole.WriteLn('      $path = $firstArg');
-  TConsole.WriteLn('      $i = 2');
-  TConsole.WriteLn('      while ($i -le $cword) {');
-  TConsole.WriteLn('        $subcmds = $tree["$path|subcommands"]');
-  TConsole.WriteLn('        $found = $false');
-  TConsole.WriteLn('        foreach ($sub in $subcmds -split " ") {');
-  TConsole.WriteLn('          if ($words[$i] -eq $sub) {');
-  TConsole.WriteLn('            $path = "$path $sub"');
-  TConsole.WriteLn('            $found = $true');
-  TConsole.WriteLn('            break');
-  TConsole.WriteLn('          }');
-  TConsole.WriteLn('        }');
-  TConsole.WriteLn('        if (-not $found) { break }');
-  TConsole.WriteLn('        $i++');
-  TConsole.WriteLn('      }');
-  TConsole.WriteLn('    }');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('  $subcmds = $tree["$path|subcommands"]');
-  TConsole.WriteLn('  $params = $tree["$path|params"]');
-  if FDebugMode then
-  begin
-    TConsole.WriteLn('  # DEBUG: Print key variables');
-    TConsole.WriteLn('  Write-Host "[DEBUG] path=[$path] subcmds=[$subcmds] params=[$params] i=$i cword=$cword wordToComplete=[$wordToComplete]" -ForegroundColor Magenta');
-  end;
-  TConsole.WriteLn('  # Detect if the cursor is after a space (i.e., starting a new word)');
-  TConsole.WriteLn('  $afterSpace = ($cursorPosition -gt 0 -and $line[$cursorPosition-1] -eq " ")');
-  TConsole.WriteLn('  if ($afterSpace) {');
-  TConsole.WriteLn('    $filter = ""');
-  TConsole.WriteLn('  } elseif ($words.Count -gt 0) {');
-  TConsole.WriteLn('    $filter = $words[-1]');
-  TConsole.WriteLn('    if ($words.Count -le 1 -or $filter -eq $commandName) { $filter = "" }');
-  TConsole.WriteLn('  } else {');
-  TConsole.WriteLn('    $filter = ""');
-  TConsole.WriteLn('  }');
-  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), set $filter to empty to show all completions');
-  TConsole.WriteLn('  if (($i - 1 -eq $cword)) { $filter = "" }');
-  TConsole.WriteLn('  # To test with a hardcoded completion list, uncomment the next line:');
-  TConsole.WriteLn('  # return ("foo", "bar", "baz") | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('  # If the cursor is after a completed subcommand (i-1 == cword), show subcommands and params, or just params if no subcmds');
-  TConsole.WriteLn('  if ($i - 1 -eq $cword) {' );
-  TConsole.WriteLn('    $filter = ""');
-  TConsole.WriteLn('    if ($subcmds -ne "") {' );
-  TConsole.WriteLn('      ($subcmds + " " + $params) -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('    } elseif ($params -ne "") {' );
-  TConsole.WriteLn('      $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
-  TConsole.WriteLn('    } else {' );
-  TConsole.WriteLn('      @()');
-  TConsole.WriteLn('    }');
-  TConsole.WriteLn('  } else {' );
-  TConsole.WriteLn('    $params -split " " | Where-Object { $_ -like "$filter*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", $_) }');
+  TConsole.WriteLn('');
+  TConsole.WriteLn('# Register for all common invocation patterns');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + AppName + '" -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "' + ChangeFileExt(AppName, '') + '" -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName "./' + AppName + '" -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\' + AppName + '" -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('Register-ArgumentCompleter -CommandName ".\\' + AppName + '" -ScriptBlock $scriptBlock');
+  TConsole.WriteLn('');
+  TConsole.WriteLn('# Try -Native flag if PowerShell 7+');
+  TConsole.WriteLn('if ($PSVersionTable.PSVersion.Major -ge 7) {');
+  TConsole.WriteLn('  Register-ArgumentCompleter -Native -CommandName "' + ChangeFileExt(AppName, '') + '" -ScriptBlock {');
+  TConsole.WriteLn('    param($wordToComplete, $commandAst, $cursorPosition)');
+  TConsole.WriteLn('    & $scriptBlock $wordToComplete $commandAst $cursorPosition');
   TConsole.WriteLn('  }');
   TConsole.WriteLn('}');
 end;

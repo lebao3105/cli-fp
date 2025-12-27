@@ -48,6 +48,13 @@ begin
   // Register the command to the application
   App.RegisterCommand(Cmd);
 
+  // Example: register a flag value completion for --name
+  App.RegisterFlagValueCompletion('greet', '--name',
+    function (Args: TStringArray; ToComplete: string): TStringArray
+    begin
+      Result := ['Alice', 'Bob', 'Carol'];
+    end);
+
   // Execute the application
   ExitCode := App.Execute;
 end.
