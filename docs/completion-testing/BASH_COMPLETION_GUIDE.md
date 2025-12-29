@@ -1,5 +1,10 @@
 # Bash Completion User Guide
 
+**Document Version:** 1.0
+**Last Updated:** 2025-12-29
+**Framework:** cli-fp
+**Applies To:** Bash 3.2+ (Linux, macOS, Git Bash on Windows)
+
 ## Overview
 
 This guide explains how to use Bash completion effectively with CLI applications built using the cli-fp framework.

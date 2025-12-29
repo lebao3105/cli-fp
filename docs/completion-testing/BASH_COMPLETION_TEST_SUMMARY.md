@@ -1,6 +1,13 @@
 # Bash Completion Test Summary
 
+**Test Date:** 2025-12-29
+**Analysis Date:** 2025-12-29
+**Application:** SubCommandDemo.exe
+**Framework:** cli-fp
+**Shell:** Git Bash (Bash 4.x on Windows)
+
 ## Overview
+
 Testing the Bash completion script for SubCommandDemo.exe revealed mostly correct behavior with a few areas needing clarification.
 
 ## Test Statistics

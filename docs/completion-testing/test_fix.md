@@ -1,5 +1,9 @@
 # Quick Test for Root-Level Flag Completion Fix
 
+**Fix Date:** 2025-12-29
+**Issue:** Root-level prefix completion not working
+**File Modified:** src/cli.application.pas (lines 1095-1110)
+
 ## Test the Fix
 
 In Git Bash, run these commands to verify the fix:
