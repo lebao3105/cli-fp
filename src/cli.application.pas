@@ -1092,6 +1092,23 @@ begin
   if (tc > 0) and (Tokens[tc - 1] = '') then
     isNewToken := True;
 
+  // Check if first token is a flag (root-level flag completion)
+  if StartsStr('-', Tokens[0]) then
+  begin
+    toComplete := Tokens[0];
+    // Complete global flags
+    if StartsStr(LowerCase(toComplete), '--help') then suggestions.Add('--help');
+    if StartsStr(LowerCase(toComplete), '--help-complete') then suggestions.Add('--help-complete');
+    if StartsStr(LowerCase(toComplete), '--version') then suggestions.Add('--version');
+    if StartsStr(LowerCase(toComplete), '--completion-file') then suggestions.Add('--completion-file');
+    if StartsStr(LowerCase(toComplete), '--completion-file-pwsh') then suggestions.Add('--completion-file-pwsh');
+    if StartsStr(LowerCase(toComplete), '-h') then suggestions.Add('-h');
+    if StartsStr(LowerCase(toComplete), '-v') then suggestions.Add('-v');
+    suggestions.Add(':'+IntToStr(directive));
+    Result := suggestions;
+    Exit;
+  end;
+
   // Resolve command path
   Cmd := FindCommand(Tokens[0]);
   if not Assigned(Cmd) then
