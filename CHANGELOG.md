@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.5] - 2025-12-29
+
 ### Added
 
 - Hidden `__complete` entrypoint for dynamic shell completion support (Cobra-style)
@@ -15,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TestComplete()` method for testing completion functionality programmatically
 - Helper methods for completion: `ParamByFlag()`, `GetRegisteredFlagCompletion()`, `GetRegisteredPositionalCompletion()`
 - Completion directive system (`CD_ERROR`, `CD_NOSPACE`, `CD_NOFILE`, `CD_KEEPORDER`) for shell integration
+- Comprehensive Bash completion testing documentation in `docs/completion-testing/`:
+  - 30 manual test cases with verification results
+  - User guide for Bash completion (BASH_COMPLETION_GUIDE.md)
+  - Test analysis and summary documents
+  - File organization documentation
+- Professional metadata headers (dates, versions, status) to all test documentation files
 
 ### Improved
 
@@ -24,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Root-level flag completion bug**: Flags starting with `-` at root level (e.g., `./app --h[TAB]`, `./app -[TAB]`) now complete correctly
+  - Modified `src/cli.application.pas` lines 1095-1110 in `DoComplete()` function
+  - Added check for `-` prefix before attempting command matching
+  - All global flags (`--help`, `--version`, `--completion-file`, etc.) now complete at root level
 - Bash completion script generation: fixed quote escaping in `sed` command (was `\"$d\"`, now `'$d'`)
 - Bash completion argument building: changed loop from `i<=cword` to `i<cword` to prevent duplicate tokens
 - Bash completion now correctly distinguishes between completing a new word vs. completing a partial word
@@ -31,6 +43,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Completion logic: Added special handling for when last token is a complete flag (for PowerShell compatibility)
 - Completion logic: Empty tokens are now properly excluded from positional argument counting
 - Completion logic: Flags are now suggested alongside subcommands when completing a new word after a command
+
+### Changed
+
+- Removed 4 redundant/test examples for improved project clarity:
+  - Removed `examples/BooleanTest/` (test file, not a demo)
+  - Removed `examples/TestFlags/` (test file, not a demo)
+  - Removed `examples/MyApp/` (redundant with SimpleDemo)
+  - Removed `examples/MyGit/` (redundant with SubCommandDemo)
+- Reorganized completion-related files for better maintainability:
+  - Moved all documentation to `docs/completion-testing/` (8 files)
+  - Moved all test scripts to `tests/completion-tests/` (15 files)
+  - `example-bin/` now contains only executables and completion scripts
+  - Added README.md files to each directory for navigation
 
 ### Technical
 
@@ -46,11 +71,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Testing
 
-- 29 out of 30 tests pass (97% pass rate)
-- 1 pre-existing test failure in boolean flag handling (unrelated to completion)
+- **30 out of 30 tests pass (100% pass rate)** ✅
+  - Comprehensive manual testing with SubCommandDemo.exe on Git Bash (Windows)
+  - All root-level completions working correctly
+  - All command/subcommand completions working correctly
+  - All flag completions (short and long forms) working correctly
+  - Multi-level command structures tested and verified
 - All built-in completion features (commands, flags, booleans, enums) thoroughly tested manually
-- Bash completion: All 5 manual tests pass (Ubuntu 24.04)
-- PowerShell completion: All 4 manual tests pass (PowerShell 7.5.2)
+- Bash completion: All manual tests pass (Git Bash on Windows, Ubuntu 24.04)
+- PowerShell completion: All manual tests pass (PowerShell 7.5.2)
+- Test documentation available in `docs/completion-testing/BASH_COMPLETION_TESTS.md`
+- Verification results documented in `docs/completion-testing/VERIFY_FIX.md`
 
 ## [1.1.4] - 2025-06-28
 

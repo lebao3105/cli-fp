@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.4-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.5-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -320,9 +320,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Thanks to the Free Pascal community for their support and contributions
 
 ## 🧪 Completion Script Testing
-- **Bash completion** tested on Ubuntu 24.04 (works in standard bash shells)
+
+- **Bash completion** tested on Ubuntu 24.04 and Git Bash on Windows (works in standard bash shells)
+  - **30 comprehensive manual test cases** with 100% pass rate
+  - All root-level, command, subcommand, and flag completions verified
+  - See [docs/completion-testing/](docs/completion-testing/) for full test documentation
 - **PowerShell completion** tested on PowerShell 7.5.2 (cross-platform)
 
+> **For detailed testing documentation:** See [docs/completion-testing/BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for a complete user guide and [docs/completion-testing/BASH_COMPLETION_TESTS.md](docs/completion-testing/BASH_COMPLETION_TESTS.md) for the full test suite.
+>
 > **Tip:** To check your PowerShell version, run:
 > ```powershell
 > $PSVersionTable.PSVersion
