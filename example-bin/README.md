@@ -82,11 +82,11 @@ The executable will be placed in `example-bin/`.
 
 ## Directory Contents
 
-- `.exe` files - Windows executables
 - `*_completion.bash` files - Bash completion scripts
 - `*_completion.ps1` files - PowerShell completion scripts
-- Non-extension files - Linux/macOS executables (if built)
 - `lib/` - Shared compiled units (can be ignored)
+
+**Note:** Pre-compiled binaries are no longer included in this directory. Users should compile examples from source using the build scripts in the repository root (`compile-all-examples.ps1` or `compile-all-examples.sh`).
 
 ## Documentation
 

@@ -321,13 +321,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🧪 Completion Script Testing
 
-- **Bash Completion**: Tested on Git Bash 4.x (Windows) and Ubuntu 24.04
+- **Bash Completion**: Tested on Git Bash 4.x (Windows)
   - **30/30 manual test cases passing (100%)**
   - All root-level, command, subcommand, and flag completions verified
   - See [BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for user guide
   - See [BASH_COMPLETION_TESTS.md](docs/completion-testing/BASH_COMPLETION_TESTS.md) for test suite
 
-- **PowerShell Completion**: Tested on PowerShell 7.5.4 (cross-platform)
+- **PowerShell Completion**: Tested on PowerShell 7.5.4 (Windows)
   - **30/30 manual test cases passing (100%)**
   - All completion features working as designed
   - See [PS_COMPLETION_GUIDE.md](docs/completion-testing/PS_COMPLETION_GUIDE.md) for user guide

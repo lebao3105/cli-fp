@@ -79,13 +79,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 
 - **Bash Completion: 30/30 tests pass (100%)** ✅
-  - Tested on Git Bash 4.x (Windows) and Ubuntu 24.04
+  - Tested on Git Bash 4.x (Windows)
   - All root-level, command, subcommand, and flag completions verified
   - Multi-level command structures working correctly
   - Full test documentation: `docs/completion-testing/BASH_COMPLETION_TESTS.md`
 
 - **PowerShell Completion: 30/30 tests pass (100%)** ✅
-  - Tested on PowerShell 7.5.4 (cross-platform)
+  - Tested on PowerShell 7.5.4 (Windows)
   - All completion features working as designed
   - Initial 26/30 "failures" analyzed and confirmed as expected behavior
   - Full test documentation: `docs/completion-testing/PS_COMPLETION_TESTS.md`
