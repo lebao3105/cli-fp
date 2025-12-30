@@ -321,13 +321,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🧪 Completion Script Testing
 
-- **Bash completion** tested on Ubuntu 24.04 and Git Bash on Windows (works in standard bash shells)
-  - **30 comprehensive manual test cases** with 100% pass rate
+- **Bash Completion**: Tested on Git Bash 4.x (Windows) and Ubuntu 24.04
+  - **30/30 manual test cases passing (100%)**
   - All root-level, command, subcommand, and flag completions verified
-  - See [docs/completion-testing/](docs/completion-testing/) for full test documentation
-- **PowerShell completion** tested on PowerShell 7.5.2 (cross-platform)
+  - See [BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for user guide
+  - See [BASH_COMPLETION_TESTS.md](docs/completion-testing/BASH_COMPLETION_TESTS.md) for test suite
 
-> **For detailed testing documentation:** See [docs/completion-testing/BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for a complete user guide and [docs/completion-testing/BASH_COMPLETION_TESTS.md](docs/completion-testing/BASH_COMPLETION_TESTS.md) for the full test suite.
+- **PowerShell Completion**: Tested on PowerShell 7.5.4 (cross-platform)
+  - **30/30 manual test cases passing (100%)**
+  - All completion features working as designed
+  - See [PS_COMPLETION_GUIDE.md](docs/completion-testing/PS_COMPLETION_GUIDE.md) for user guide
+  - See [PS_COMPLETION_TESTS.md](docs/completion-testing/PS_COMPLETION_TESTS.md) for test suite
+
+> **Full Documentation:** All test documentation, guides, and analysis available in [docs/completion-testing/](docs/completion-testing/)
 >
 > **Tip:** To check your PowerShell version, run:
 > ```powershell
@@ -389,33 +395,3 @@ Generate a PowerShell completion script for your CLI with:
 - **Works in PowerShell 7.5+** (cross-platform)
 
 > See the user manual for setup and usage details.
-
-## Advanced: Dynamic completion hooks
-
-You can opt-in to dynamic, programmatic completions by registering callbacks in your program. The generated completion scripts are "dumb": they call the binary's hidden `__complete` entrypoint, and the binary resolves context and calls your registered hooks.
-
-Example — flag value completion for `deploy --env`:
-
-```pascal
-App.RegisterFlagValueCompletion('deploy', '--env',
-  function (Args: TStringArray; ToComplete: string): TStringArray
-  begin
-    Result := ['dev', 'staging', 'prod'];
-  end);
-```
-
-Example — positional completion for first arg of `deploy`:
-
-```pascal
-App.RegisterPositionalCompletion('deploy', 0,
-  function (Args: TStringArray; ToComplete: string): TStringArray
-  begin
-    // Args contains already-entered positional args (if any)
-    if (Length(Args) > 0) and (Args[0] = 'group1') then
-      Result := ['service-a', 'service-b']
-    else
-      Result := ['service-x', 'service-y'];
-  end);
-```
-
-The binary prints one candidate per line and a final `:<directive>` line (bitmask). For example, `4` indicates ``NoFileComp`` (don't fall back to filename completion). Note: PowerShell support is best-effort for the `NoSpace` directive — the generated script returns completion results as `ParameterName` entries when `NoSpace` is set to discourage the shell from appending a trailing space.
