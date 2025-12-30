@@ -764,6 +764,7 @@ The framework can generate robust, context-aware completion scripts for both Bas
 - **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
 - **Subcommands:** Only `-h` and `--help` are offered as global flags.
 - **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - **No file completion is ever offered.**
 
 #### PowerShell Completion
@@ -773,6 +774,7 @@ The framework can generate robust, context-aware completion scripts for both Bas
   ```
 - **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
 - **No file fallback:** Only valid completions are shown (never files)
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - **Works in PowerShell 7.5+** (cross-platform)
 
 See the user manual for setup, usage, and safe sourcing instructions.

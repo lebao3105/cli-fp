@@ -1082,6 +1082,7 @@ echo 'source $(pwd)/myapp-completion.sh' >> ~/.bashrc
 - **Global flags:**
   - At the root level, completions include all global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`).
   - At all subcommand levels, only `-h` and `--help` are offered as global flags (matching the CLI's actual behavior).
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - Stays up-to-date with your CLI's structure
 - No external dependencies required
 
@@ -1130,6 +1131,7 @@ The CLI now provides robust, context-aware PowerShell tab completion for all com
 - After typing the executable and a space, press Tab to see all subcommands and global flags (not files).
 - After typing a subcommand and a space, press Tab to see sub-subcommands and flags for that subcommand.
 - Completion is context-aware at every level.
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
 - If there are no further subcommands, only flags are shown.
 - If nothing matches, file completion is suppressed.
 
