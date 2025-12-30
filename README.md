@@ -345,6 +345,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   ./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
   ```
 
+### 💡 Completion Behavior Note
+
+**Commands First Design:** When you press TAB at the root level without typing anything, completion shows **commands only**, not flags. To see flags, type `-` or `--` first:
+
+```bash
+# Shows commands only
+./yourcli [TAB]
+
+# Shows all flags
+./yourcli --[TAB]
+./yourcli -[TAB]
+```
+
+This intentional design keeps the initial suggestions focused on the most common workflow (choosing a command first), while keeping flags easily accessible with a prefix. This behavior is consistent across both Bash and PowerShell.
+
 ## 🧩 Bash Completion Script (`--completion-file`)
 
 Generate a Bash completion script for your CLI with:

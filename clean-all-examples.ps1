@@ -11,16 +11,12 @@ if (Test-Path $exampleBin) {
 }
 
 $examples = @(
-    'BooleanTest',
     'ColorDemo',
     'ErrorHandlingDemo',
     'LongRunningOpDemo',
-    'MyApp',
-    'MyGit',
     'ProgressDemo',
     'SimpleDemo',
-    'SubCommandDemo',
-    'TestFlags'
+    'SubCommandDemo'
 )
 
 foreach ($ex in $examples) {

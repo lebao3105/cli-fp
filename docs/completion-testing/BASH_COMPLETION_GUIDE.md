@@ -46,6 +46,35 @@ $ ./SubCommandDemo.exe repo [TAB][TAB]
 
 ### Understanding Completion Behavior
 
+#### 0. Commands First - The Design Principle
+
+**Important:** The cli-fp completion engine follows a "commands first" design principle:
+
+When you press `[TAB]` at the root level **without any prefix**, only commands are shown, not flags:
+
+```bash
+$ ./SubCommandDemo.exe [TAB]
+$ ./SubCommandDemo.exe repo     # Only the command, auto-completes since there's one match
+```
+
+**To see flags, type a dash prefix:**
+
+```bash
+$ ./SubCommandDemo.exe -[TAB][TAB]
+--completion-file  --completion-file-pwsh  --help  --help-complete  --version  -h  -v
+
+$ ./SubCommandDemo.exe --[TAB][TAB]
+--completion-file  --completion-file-pwsh  --help  --help-complete  --version
+```
+
+**Why this design?**
+- Reduces cognitive overload by showing the most commonly needed items first (commands)
+- Follows the natural workflow: choose a command, then choose flags
+- Keeps the initial suggestion list short and focused
+- Flags are still easily accessible by typing `-` or `--`
+
+This behavior is **intentional** and consistent across both Bash and PowerShell completion.
+
 #### 1. Auto-Completion vs. Showing Options
 
 **Auto-completion** happens when there's only one match:
