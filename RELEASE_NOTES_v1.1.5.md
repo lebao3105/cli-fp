@@ -19,7 +19,6 @@ Version 1.1.5 brings comprehensive shell completion enhancements with automatic 
   - Hidden `__complete` entrypoint for dynamic shell completion support
   - Completion directive system (`CD_ERROR`, `CD_NOSPACE`, `CD_NOFILE`, `CD_KEEPORDER`)
   - `TestComplete()` method for programmatic completion testing
-  - Helper methods: `ParamByFlag()`, `GetRegisteredFlagCompletion()`, `GetRegisteredPositionalCompletion()`
 
 ### Comprehensive Documentation
 

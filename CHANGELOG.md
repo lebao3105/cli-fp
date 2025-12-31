@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic value completion for boolean parameters (`true`/`false`)
   - Automatic value completion for enum parameters (from allowed values list)
   - `TestComplete()` method for programmatic completion testing
-  - Helper methods: `ParamByFlag()`, `GetRegisteredFlagCompletion()`, `GetRegisteredPositionalCompletion()`
   - Completion directive system (`CD_ERROR`, `CD_NOSPACE`, `CD_NOFILE`, `CD_KEEPORDER`) for shell integration
 
 - **Comprehensive Documentation**

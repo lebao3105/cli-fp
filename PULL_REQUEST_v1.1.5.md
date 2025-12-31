@@ -33,7 +33,6 @@ This PR introduces comprehensive shell completion enhancements with automatic va
 - Hidden `__complete` entrypoint for dynamic shell completion
 - Completion directive system (`CD_ERROR`, `CD_NOSPACE`, `CD_NOFILE`, `CD_KEEPORDER`)
 - `TestComplete()` method for programmatic testing
-- Helper methods: `ParamByFlag()`, `GetRegisteredFlagCompletion()`, `GetRegisteredPositionalCompletion()`
 
 ### 3. Comprehensive Documentation
 
