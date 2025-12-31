@@ -2,13 +2,13 @@
 
 ## 📋 Summary
 
-This PR introduces comprehensive shell completion enhancements with automatic value completion, extensive testing documentation, and critical bug fixes for version 1.1.5.
+This PR introduces comprehensive shell completion enhancements with automatic value completion for boolean and enum parameters, extensive testing documentation, and full implementation of the Cobra-style `__complete` entrypoint for version 1.1.5.
 
 ## 🎯 Type of Change
 
 - [x] New feature (non-breaking change which adds functionality)
-- [x] Bug fix (non-breaking change which fixes an issue)
 - [x] Documentation update
+- [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 
 ## ✨ What's New
@@ -51,34 +51,6 @@ This PR introduces comprehensive shell completion enhancements with automatic va
 - Added automatic value completion to api-reference.md
 - Added PowerShell completion generator section to technical-docs.md
 - Enhanced user-manual.md with completion examples
-
-## 🐛 Bug Fixes
-
-### Critical: Root-Level Flag Completion
-
-**Before:**
-```bash
-./app --h[TAB]  # No completion ❌
-./app -[TAB]    # No completion ❌
-```
-
-**After:**
-```bash
-./app --h[TAB]  # Completes: --help  --help-complete ✅
-./app -[TAB]    # Completes: -h  -v ✅
-```
-
-**Technical Details:**
-- Modified `src/cli.application.pas` lines 1095-1110
-- Added `-` prefix check before command matching in `DoComplete()`
-
-### Other Fixes
-
-- Fixed empty token detection for value completion
-- Fixed duplicate empty arguments in Bash completion
-- Improved quote escaping in completion script generation
-- Fixed argument building loop (`i<=cword` → `i<cword`)
-- Enhanced PowerShell compatibility for empty string handling
 
 ## 📊 Testing
 

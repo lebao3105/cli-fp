@@ -39,25 +39,21 @@ Version 1.1.5 brings comprehensive shell completion enhancements with automatic 
   - Added PowerShell completion generator section to technical-docs.md
   - Updated user-manual.md with comprehensive completion examples
 
-## 🐛 Bug Fixes
+## 🔄 Implementation Details
 
-### Critical Fix: Root-Level Flag Completion
+### Core Completion Logic
 
-**Issue:** Flags starting with `-` at root level (e.g., `./app --h[TAB]`, `./app -[TAB]`) were not completing correctly.
+- Root-level flag completion properly handles `-` and `--` prefixes in `src/cli.application.pas` (lines 1095-1110)
+- Empty token detection for accurate value completion
+- Process substitution for improved performance and reliability
+- Context-aware completion at all command levels
 
-**Fix:** Modified `src/cli.application.pas` lines 1095-1110 in `DoComplete()` function to check for `-` prefix before attempting command matching.
+### Script Generation Improvements
 
-**Impact:** All global flags (`--help`, `--version`, `--completion-file`, etc.) now complete properly at root level.
-
-### Other Fixes
-
-- Bash completion script now properly handles empty token detection for value completion
-- Fixed duplicate empty arguments when completing new words
-- Completion scripts now use process substitution for better performance and reliability
-- Quote escaping in Bash completion script generation
-- Bash completion argument building (changed loop from `i<=cword` to `i<cword`)
-- PowerShell empty string argument passing compatibility
-- Proper handling of complete flags for PowerShell compatibility
+- Bash completion script handles quote escaping correctly
+- Fixed argument building loop boundaries for accurate token parsing
+- PowerShell compatibility for empty string handling
+- Proper directive handling for shell integration
 
 ## 📊 Testing Results
 
