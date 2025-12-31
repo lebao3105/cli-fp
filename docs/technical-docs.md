@@ -505,6 +505,187 @@ Accessible via the `--completion-file-pwsh` global flag, this generator outputs 
 
 This design matches the behavior of popular tools like `git` and ensures a robust and user-friendly completion experience.
 
+### Completion System Flow Diagram
+
+The completion system uses a **hidden `__complete` entrypoint** that shell scripts invoke to get completion suggestions dynamically:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         USER INTERACTION                                │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ User presses TAB
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      BASH / POWERSHELL SHELL                            │
+│                                                                         │
+│  • Detects TAB keypress                                                 │
+│  • Reads current command line                                           │
+│  • Parses words and cursor position                                     │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Calls completion function
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    GENERATED COMPLETION SCRIPT                          │
+│  (myapp_completion.bash / myapp_completion.ps1)                         │
+│                                                                         │
+│  Bash:                                                                  │
+│    1. Extract COMP_WORDS[] and COMP_CWORD                               │
+│    2. Build args array from words[1..cword-1]                           │
+│    3. If cursor after space, append empty token ""                      │
+│    4. Call: ./myapp __complete "${args[@]}"                             │
+│                                                                         │
+│  PowerShell:                                                            │
+│    1. Split command line into $words array                              │
+│    2. Skip first word (app name)                                        │
+│    3. If line ends with space, append empty token                       │
+│    4. Call: & ./myapp __complete @argsList                              │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Executes: myapp __complete [tokens...]
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     CLI APPLICATION (src/cli.application.pas)           │
+│                                                                         │
+│  TCLIApplication.Execute():                                             │
+│    ┌──────────────────────────────────────────────────┐                 │
+│    │ if ParamStr(1) = '__complete' then               │                 │
+│    │   HandleCompletion();                            │                 │
+│    │   Exit(0);                                       │                 │
+│    └──────────────────────────────────────────────────┘                 │
+│                         │                                               │
+│                         ▼                                               │
+│  HandleCompletion():                                                    │
+│    • Collect tokens from ParamStr(2..ParamCount)                        │
+│    • Call DoComplete(Tokens)                                            │
+│    • Write suggestions to stdout (one per line)                         │
+│    • Write directive as :<number> on last line                          │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Calls DoComplete()
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│            DoComplete(Tokens): COMPLETION LOGIC ENGINE                  │
+│                          (lines 1050-1330)                              │
+│                                                                         │
+│  1. ROOT-LEVEL FLAG CHECK (lines 1095-1110)                             │
+│     ┌─────────────────────────────────────────┐                         │
+│     │ if Tokens[0] starts with '-'            │                         │
+│     │   → Complete global flags               │                         │
+│     │   → Return: --help, --version, etc.     │                         │
+│     └─────────────────────────────────────────┘                         │
+│                         │                                               │
+│  2. COMMAND RESOLUTION (lines 1112-1123)                                │
+│     ┌─────────────────────────────────────────┐                         │
+│     │ Find command matching Tokens[0]         │                         │
+│     │ If not found:                           │                         │
+│     │   → Complete top-level commands         │                         │
+│     │   → Return: matching command names      │                         │
+│     └─────────────────────────────────────────┘                         │
+│                         │                                               │
+│  3. SUBCOMMAND WALKING (lines 1125-1143)                                │
+│     ┌─────────────────────────────────────────┐                         │
+│     │ Walk through subcommands                │                         │
+│     │ idx = 1                                 │                         │
+│     │ while idx < token_count:                │                         │
+│     │   if Tokens[idx] is subcommand:         │                         │
+│     │     Cmd = SubCmd                        │                         │
+│     │     idx++                               │                         │
+│     └─────────────────────────────────────────┘                         │
+│                         │                                               │
+│  4. CONTEXT DETERMINATION                                               │
+│                         │                                               │
+│     ┌───────────────────┴─┬──────────────────┐                          │
+│     ▼                     ▼                  ▼                          │
+│  FLAG NAME           FLAG VALUE          POSITIONAL                     │
+│  (lines 1159-1201)   (lines 1206-1263)   (lines 1267-1330)              │
+│                                                                         │
+│  Last token          Previous token      Not completing flag            │
+│  starts with '-'     is a flag           or flag value                  │
+│  ├─ Complete?        ├─ Boolean?         ├─ Check custom hook           │
+│  │  → --flag-name    │  → true/false     │  (stubbed)                   │
+│  ├─ Exact match?     ├─ Enum?            ├─ argIndex = 0?               │
+│  │  → Complete       │  → allowed vals   │  → Subcommands               │
+│     value (bool/     ├─ Custom hook?     │  → Flags                     │
+│     enum)            │  (stubbed)         ├─ argIndex > 0?              │
+│                      └─ Other types?      │  → Flags only               │
+│                         → No completion   └─ (no file completion)       │
+│                                                                         │
+│  5. RETURN SUGGESTIONS + DIRECTIVE                                      │
+│     ┌─────────────────────────────────────────┐                         │
+│     │ suggestions = TStringList               │                         │
+│     │ directive = CD_NOFILE | CD_NOSPACE etc. │                         │
+│     │ Return: suggestions + :<directive>      │                         │
+│     └─────────────────────────────────────────┘                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Returns list of suggestions
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         STDOUT OUTPUT                                   │
+│                                                                         │
+│  suggestion1                                                            │
+│  suggestion2                                                            │
+│  suggestion3                                                            │
+│  :4       ← directive (CD_NOFILE = 4)                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Output captured by shell script
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    COMPLETION SCRIPT PROCESSING                         │
+│                                                                         │
+│  • Parse last line for directive (:number)                              │
+│  • Extract suggestions (all lines before directive)                     │
+│  • Apply directive:                                                     │
+│    - CD_NOFILE (4): Don't fallback to file completion                   │
+│    - CD_NOSPACE (1): Don't add space after completion                   │
+│  • Set shell completion candidates (COMPREPLY / results array)          │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ Completion options ready
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         USER SEES COMPLETIONS                           │
+│                                                                         │
+│  $ myapp repo clone --[TAB]                                             │
+│  --url  --path  --branch  --depth  --help                               │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Points:**
+
+- **Hidden Entrypoint**: The application checks `ParamStr(1) = '__complete'` before normal command processing
+- **Token-Based**: Shell passes parsed command-line tokens to `__complete`
+- **Directive System**: Return value includes completion directive flags (CD_NOFILE, CD_NOSPACE, etc.)
+- **Context-Aware**: Completion logic walks command tree to determine current context
+- **Type-Aware**: Boolean and Enum parameters automatically complete with their valid values
+- **No File Fallback**: By default, only valid command/flag completions are shown
+
+**Example Token Flow:**
+
+```bash
+# User types: myapp repo clone --url [TAB]
+# Shell calls: myapp __complete repo clone --url
+
+Tokens = ["repo", "clone", "--url"]
+  ↓
+DoComplete():
+  1. Tokens[0] = "repo" → Find "repo" command
+  2. Tokens[1] = "clone" → Find "clone" subcommand
+  3. Tokens[2] = "--url" → Last token is a flag
+     - Check if "--url" is complete flag
+     - Check parameter type
+     - If String: no suggestions (or custom hook)
+     - If Boolean: return ["true", "false"]
+     - If Enum: return allowed values
+  ↓
+Return: suggestions + ":4" (CD_NOFILE)
+```
+
+---
+
 ### Completion Feature Matrix
 
 The completion system provides comprehensive built-in support with some planned advanced features:
