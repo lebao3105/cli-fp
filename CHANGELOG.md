@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 
 - **Bash Completion: 30/30 tests pass (100%)** ✅
-  - Tested on Git Bash 4.x (Windows)
+  - Tested on Bash 4.4.23 via Git Bash (Windows)
   - All root-level, command, subcommand, and flag completions verified
   - Multi-level command structures working correctly
   - Full test documentation: `docs/completion-testing/BASH_COMPLETION_TESTS.md`

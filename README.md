@@ -321,7 +321,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🧪 Completion Script Testing
 
-- **Bash Completion**: Tested on Git Bash 4.x (Windows)
+- **Bash Completion**: Tested on Bash 4.4.23 via Git Bash (Windows)
   - **30/30 manual test cases passing (100%)**
   - All root-level, command, subcommand, and flag completions verified
   - See [BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for user guide

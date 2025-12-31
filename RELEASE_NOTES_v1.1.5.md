@@ -4,7 +4,7 @@
 
 ## 🎉 Overview
 
-Version 1.1.5 brings comprehensive shell completion enhancements with automatic value completion for boolean and enum parameters, extensive testing documentation, and important bug fixes for root-level flag completion.
+Version 1.1.5 brings comprehensive shell completion enhancements with automatic value completion for boolean and enum parameters, extensive testing documentation, and full implementation of the Cobra-style `__complete` entrypoint.
 
 ## ✨ New Features
 
@@ -62,7 +62,7 @@ Version 1.1.5 brings comprehensive shell completion enhancements with automatic 
 ## 📊 Testing Results
 
 ### Bash Completion: 30/30 tests pass (100%) ✅
-- Tested on Git Bash 4.x (Windows)
+- Tested on Bash 4.4.23 via Git Bash (Windows)
 - All root-level, command, subcommand, and flag completions verified
 - Multi-level command structures working correctly
 
