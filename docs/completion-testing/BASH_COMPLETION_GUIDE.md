@@ -278,28 +278,6 @@ The framework automatically prevents duplicates, but bash may show both short an
 
 ---
 
-## Advanced: Custom Completions
-
-If your application uses custom completion callbacks (registered with `RegisterFlagValueCompletion` or `RegisterPositionalCompletion`), those will automatically work with the generated completion script.
-
-Example:
-```pascal
-// In your Pascal code
-App.RegisterFlagValueCompletion('greet', '--name',
-  function (Args: TStringArray; ToComplete: string): TStringArray
-  begin
-    Result := ['Alice', 'Bob', 'Carol'];  // Custom suggestions
-  end);
-```
-
-Then in Bash:
-```bash
-$ ./app greet --name [TAB][TAB]
-→ Alice  Bob  Carol    # Custom completions!
-```
-
----
-
 ## Summary
 
 ✅ **DO:**
