@@ -11,16 +11,12 @@ if ! command -v lazbuild &> /dev/null; then
 fi
 
 EXAMPLES=(
-  BooleanTest
   ColorDemo
   ErrorHandlingDemo
   LongRunningOpDemo
-  MyApp
-  MyGit
   ProgressDemo
   SimpleDemo
   SubCommandDemo
-  TestFlags
 )
 
 for ex in "${EXAMPLES[@]}"; do

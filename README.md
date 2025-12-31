@@ -1,7 +1,7 @@
 # Command-Line Interface Framework for Free Pascal 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.1.3-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
+[![Version](https://img.shields.io/badge/version-1.1.5-blue.svg)](https://github.com/ikelaiah/cli-fp/releases)
 [![Free Pascal](https://img.shields.io/badge/Free%20Pascal-3.2.2-blue.svg)](https://www.freepascal.org/)
 [![Lazarus](https://img.shields.io/badge/Lazarus-4.0-orange.svg)](https://www.lazarus-ide.org/)
 [![GitHub stars](https://img.shields.io/github/stars/ikelaiah/cli-fp?style=social)](https://github.com/ikelaiah/cli-fp/stargazers)
@@ -33,6 +33,10 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - [🤝 Contributing](#-contributing)
   - [📝 License](#-license)
   - [🙏 Acknowledgments](#-acknowledgments)
+  - [� Completion Script Testing](#-completion-script-testing)
+  - [🧩 How to Generate Completion Scripts](#-how-to-generate-completion-scripts)
+  - [🧩 Bash Completion Script (`--completion-file`)](#-bash-completion-script---completion-file)
+  - [🧩 PowerShell Completion Script (`--completion-file-pwsh`)](#-powershell-completion-script---completion-file-pwsh)
 
 ## ✨ Features
 
@@ -48,6 +52,7 @@ Combines Free Pascal's speed and reliability with professional-grade features. T
   - Short and long flags (`-h`, `--help`)
   - Automatic help generation
   - Colored output support
+  - **Shell Completion**: Generate completion scripts for Bash (`--completion-file`) and PowerShell (`--completion-file-pwsh`) with automatic value completion for boolean and enum parameters
 - **Robust Error Handling**
   - Clear error messages for unknown commands and subcommands
   - Validation of command-line flags and parameters
@@ -313,3 +318,80 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by modern CLI frameworks
 - Built with Free Pascal and Lazarus IDE
 - Thanks to the Free Pascal community for their support and contributions
+
+## 🧪 Completion Script Testing
+
+- **Bash Completion**: Tested on Bash 4.4.23 via Git Bash (Windows)
+  - **30/30 manual test cases passing (100%)**
+  - All root-level, command, subcommand, and flag completions verified
+  - See [BASH_COMPLETION_GUIDE.md](docs/completion-testing/BASH_COMPLETION_GUIDE.md) for user guide
+  - See [BASH_COMPLETION_TESTS.md](docs/completion-testing/BASH_COMPLETION_TESTS.md) for test suite
+
+- **PowerShell Completion**: Tested on PowerShell 7.5.4 (Windows)
+  - **30/30 manual test cases passing (100%)**
+  - All completion features working as designed
+  - See [PS_COMPLETION_GUIDE.md](docs/completion-testing/PS_COMPLETION_GUIDE.md) for user guide
+  - See [PS_COMPLETION_TESTS.md](docs/completion-testing/PS_COMPLETION_TESTS.md) for test suite
+
+> **Full Documentation:** All test documentation, guides, and analysis available in [docs/completion-testing/](docs/completion-testing/)
+>
+> **Tip:** To check your PowerShell version, run:
+> ```powershell
+> $PSVersionTable.PSVersion
+> ```
+
+## 🧩 How to Generate Completion Scripts
+
+- **Bash:**
+  ```bash
+  ./yourcli --completion-file > myapp-completion.sh
+  ```
+- **PowerShell:**
+  ```powershell
+  ./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
+  ```
+
+### 💡 Completion Behavior Note
+
+**Commands First Design:** When you press TAB at the root level without typing anything, completion shows **commands only**, not flags. To see flags, type `-` or `--` first:
+
+```bash
+# Shows commands only
+./yourcli [TAB]
+
+# Shows all flags
+./yourcli --[TAB]
+./yourcli -[TAB]
+```
+
+This intentional design keeps the initial suggestions focused on the most common workflow (choosing a command first), while keeping flags easily accessible with a prefix. This behavior is consistent across both Bash and PowerShell.
+
+## 🧩 Bash Completion Script (`--completion-file`)
+
+Generate a Bash completion script for your CLI with:
+
+```bash
+./yourcli --completion-file > myapp-completion.sh
+```
+
+- **Root level:** All global flags (`--help`, `-h`, `--help-complete`, `--version`, `--completion-file`) are offered.
+- **Subcommands:** Only `-h` and `--help` are offered as global flags.
+- **Completions are always context-aware**—only valid subcommands and parameters for the current path are suggested.
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
+
+> This matches the CLI's actual argument parsing and ensures completions are always valid. See the user manual for full details and safe usage instructions.
+
+## 🧩 PowerShell Completion Script (`--completion-file-pwsh`)
+
+Generate a PowerShell completion script for your CLI with:
+
+```powershell
+./yourcli.exe --completion-file-pwsh > myapp-completion.ps1
+```
+
+- **Context-aware:** Tab completion for all commands, subcommands, and flags at every level
+- **No file fallback:** Only valid completions are shown (never files)
+- **Automatic value completion:** Boolean parameters automatically complete with `true`/`false`, and enum parameters complete with their allowed values.
+- **Works in PowerShell 7.5+** (cross-platform)
+
+> See the user manual for setup and usage details.
