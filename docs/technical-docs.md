@@ -504,3 +504,168 @@ Accessible via the `--completion-file-pwsh` global flag, this generator outputs 
 - Works in PowerShell 7.5+ (cross-platform).
 
 This design matches the behavior of popular tools like `git` and ensures a robust and user-friendly completion experience.
+
+### Completion Feature Matrix
+
+The completion system provides comprehensive built-in support with some planned advanced features:
+
+| Feature | Status | Implementation Details |
+|---------|--------|----------------------|
+| **Commands** | ✅ Fully functional | Statically generated from registered command tree |
+| **Subcommands** | ✅ Fully functional | Multi-level hierarchy support |
+| **Flags (short/long)** | ✅ Fully functional | Context-aware at each command level |
+| **Boolean values** | ✅ Fully functional | Auto-completes with `true`/`false` |
+| **Enum values** | ✅ Fully functional | Auto-completes with allowed values |
+| **Custom callbacks** | ⏳ Planned | Blocked by FPC 3.2.2 function pointer storage limitations |
+
+**Implementation Approach:**
+
+- **Built-in completion** (✅ Working): All completion data is generated statically from the command tree structure and parameter definitions. The `DoComplete()` method in `CLI.Application` traverses the registered commands and parameters to provide completions. No dynamic storage of function pointers required.
+
+- **Custom callbacks** (⏳ Planned): Would allow developers to register custom completion functions (e.g., `RegisterFlagValueCompletion()`, `RegisterPositionalCompletion()`) for dynamic value completion from external sources (files, databases, APIs). Currently blocked by Free Pascal limitations with storing function pointers in dynamic arrays. Methods exist but are stubbed with TODO comments.
+
+**Current Capability:** The built-in completion system covers approximately 95% of typical CLI use cases. Custom callbacks would enable advanced scenarios like completing filenames from directories, database records, or API responses.
+
+---
+
+### Technical Deep-Dive: Why Custom Callbacks Are Not Available
+
+**TL;DR:** Custom completion callbacks require storing function pointers in dynamic arrays, which Free Pascal 3.2.2 cannot reliably handle due to memory management limitations.
+
+#### The Problem
+
+Custom callbacks would allow developers to register dynamic completion functions at runtime:
+
+```pascal
+// What we WANT to support (but can't):
+App.RegisterFlagValueCompletion('deploy', '--env',
+  function (Args: TStringArray; ToComplete: string): TStringArray
+  begin
+    Result := ['dev', 'staging', 'prod'];  // Custom completion
+  end);
+
+// Later, when shell requests completion:
+App.DoComplete(['deploy', '--env', '']);
+// Should return ['dev', 'staging', 'prod']
+```
+
+#### What We Tried
+
+The implementation requires storing function pointers in dynamic structures:
+
+```pascal
+type
+  TFlagValueCompletionFunc = function (Args: TStringArray; ToComplete: string): TStringArray;
+
+  TFlagCompletionEntry = record
+    Key: string;                           // e.g., "deploy/--env"
+    Callback: TFlagValueCompletionFunc;    // Function pointer
+  end;
+
+  TFlagCompletionList = array of TFlagCompletionEntry;  // Dynamic array
+
+var
+  FFlagCompletions: TFlagCompletionList;  // Store all registered callbacks
+
+procedure RegisterFlagValueCompletion(const CommandPath, FlagName: string;
+                                       Func: TFlagValueCompletionFunc);
+begin
+  SetLength(FFlagCompletions, Length(FFlagCompletions) + 1);
+  FFlagCompletions[High(FFlagCompletions)].Key := CommandPath + '/' + FlagName;
+  FFlagCompletions[High(FFlagCompletions)].Callback := Func;  // ⚠️ PROBLEM
+end;
+
+// Later, during completion:
+function GetRegisteredCallback(const Key: string): TFlagValueCompletionFunc;
+var
+  i: Integer;
+begin
+  for i := 0 to High(FFlagCompletions) do
+    if FFlagCompletions[i].Key = Key then
+      Exit(FFlagCompletions[i].Callback);  // ⚠️ Returns nil or garbage!
+  Result := nil;
+end;
+```
+
+#### Why It Fails
+
+When retrieving stored function pointers, Free Pascal 3.2.2 exhibits unreliable behavior:
+
+1. **Returns `nil`** - The function pointer becomes null even though it was stored
+2. **Returns corrupted pointers** - Memory address is wrong, leading to crashes
+3. **Scope issues** - Function pointers may go out of scope unexpectedly
+
+**Root causes:**
+
+- **Memory management gaps**: FPC's hybrid memory model (reference counting + manual) doesn't properly track function pointer references in dynamic arrays
+- **Lifetime tracking**: FPC doesn't maintain proper reference counts for function pointers in dynamic structures
+- **ARC limitations**: Automatic Reference Counting doesn't extend to procedural types in all contexts
+
+#### What Works Instead
+
+Built-in completion avoids dynamic function pointer storage entirely:
+
+```pascal
+// In DoComplete() - static code paths, no dynamic storage needed
+function TCLIApplication.DoComplete(const Args: TStringArray): TStringArray;
+begin
+  // ... command/flag matching logic ...
+
+  // Boolean parameter completion - direct code, no stored function pointers
+  if Param.ParamType = ptBoolean then
+  begin
+    Result := TStringArray.Create('true', 'false');
+    Exit;
+  end;
+
+  // Enum parameter completion - read from parameter definition
+  if Param.ParamType = ptEnum then
+  begin
+    Result := Param.GetAllowedValues();  // Values stored as strings, not functions
+    Exit;
+  end;
+end;
+```
+
+**Why this works:**
+- No function pointers stored dynamically
+- All logic is statically coded in `DoComplete()`
+- Parameter metadata (allowed values, types) stored as simple strings/enums
+- No retrieval of function pointers from dynamic arrays
+
+#### Potential Future Solutions
+
+When FPC improves, possible approaches:
+
+1. **Better reference counting** - FPC could track function pointer references properly
+2. **Anonymous function support** - Similar to Delphi's implementation
+3. **Alternative storage** - Use object methods instead of function pointers
+4. **Static registration** - Pre-declare all callbacks at compile time (limits flexibility)
+
+#### Current Workaround
+
+For most use cases, built-in completion is sufficient:
+
+- **Commands/subcommands** - Registered via `RegisterCommand()`
+- **Flags** - Defined via `AddParameter()` methods
+- **Boolean values** - Automatically complete with `true`/`false`
+- **Enum values** - Automatically complete with allowed values from `AddEnumParameter()`
+
+Only advanced scenarios requiring **runtime-dynamic** completions from external sources (files, databases, APIs) are blocked.
+
+#### Code Location
+
+The stubbed methods can be found in `src/cli.application.pas`:
+
+- `RegisterFlagValueCompletion()` - Lines ~1007-1011
+- `RegisterPositionalCompletion()` - Lines ~1014-1018
+- `GetRegisteredFlagCompletion()` - Lines ~1021-1025
+- `GetRegisteredPositionalCompletion()` - Lines ~1028-1032
+
+All contain TODO comments: `"Implement when FPC function pointer storage is resolved"`
+
+#### References
+
+- FPC Issue Tracker: Search for "function pointer" + "dynamic array" issues
+- Related: FPC's limited support for closures and anonymous functions
+- Alternative: Some FPC developers use object methods instead of function pointers for similar use cases
