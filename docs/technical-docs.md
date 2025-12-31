@@ -666,6 +666,28 @@ All contain TODO comments: `"Implement when FPC function pointer storage is reso
 
 #### References
 
-- FPC Issue Tracker: Search for "function pointer" + "dynamic array" issues
-- Related: FPC's limited support for closures and anonymous functions
-- Alternative: Some FPC developers use object methods instead of function pointers for similar use cases
+- **FPC Feature Announcement (2022)**: "Function References and Anonymous Functions"
+  - Announced by PascalDragon on May 26, 2022
+  - Available in trunk/development versions since 2022
+  - **Not yet in stable releases** (FPC 3.2.2 doesn't have it)
+  - Forum discussion: https://forum.lazarus.freepascal.org/index.php/topic,57649.0.html
+  - Expected in: "next major version" (no specific version or date announced)
+  - **Timeline:** Unknown - announcement said "not yet planned" (could be years away)
+
+- **What the new feature provides:**
+  - Function References: Reference-counted interfaces that can store functions
+  - Anonymous Functions: Unnamed functions that can capture scope
+  - Together: Would enable the exact functionality we need for custom callbacks
+
+- **Why it would solve our problem:**
+  - Function references use interfaces internally (reference-counted)
+  - No manual memory management needed
+  - Proper lifetime tracking for captured variables
+  - Compatible with dynamic storage
+
+- **Current workarounds:**
+  - FPC Issue Tracker: Search for "function pointer" + "dynamic array" issues
+  - Alternative: Use object methods instead of function pointers (heavier weight)
+  - Wait for next FPC major version stable release
+
+**Bottom line:** The feature we need exists in FPC trunk (since 2022) but won't be available in stable releases until the "next major version," which has no announced version number or release date. This could be years away.
