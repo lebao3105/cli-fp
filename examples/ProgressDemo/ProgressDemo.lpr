@@ -51,7 +51,7 @@ begin
 
   { First phase: Show spinner while "preparing"
     Spinners are good for operations where progress can't be measured }
-  TConsole.WriteLn('Preparing to process files...', ccCyan);
+  WriteColoredLn('Preparing to process files...', ccCyan);
   Spinner := CreateSpinner(ssLine);  // Create a line-style spinner
   Spinner.Start;  // Always start before using
   
@@ -69,7 +69,7 @@ begin
 
   { Second phase: Show progress bar while "processing"
     Progress bars are good when you know the total steps }
-  TConsole.WriteLn('Processing files...', ccCyan);
+  WriteColoredLn('Processing files...', ccCyan);
   ProgressBar := CreateProgressBar(Count);  // Create progress bar with total count
   ProgressBar.Start;
   
@@ -84,7 +84,7 @@ begin
       Sleep(500);
       
       // Show what we're doing (progress details)
-      TConsole.WriteLn(Format(' Processed file %d of %d', [i, Count]), ccWhite);
+      WriteColoredLn(Format(' Processed file %d of %d', [i, Count]), ccWhite);
     end;
   finally
     // Always stop the progress bar in finally block
@@ -92,7 +92,7 @@ begin
   end;
 
   // Show success message in green
-  TConsole.WriteLn('All files processed successfully!', ccGreen);
+  WriteColoredLn('All files processed successfully!', ccGreen);
 end;
 
 var
@@ -125,7 +125,7 @@ begin
     // Handle any unexpected errors
     on E: Exception do
     begin
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       ExitCode := 1;  // Return error code
     end;
   end;

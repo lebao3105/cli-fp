@@ -612,15 +612,15 @@ procedure TCLIFrameworkTests.Test_6_1_BasicColors;
 begin
   try
     // Test basic colors
-    TConsole.WriteLn('Testing basic colors:', ccWhite);
-    TConsole.WriteLn('Black text', ccBlack);
-    TConsole.WriteLn('Blue text', ccBlue);
-    TConsole.WriteLn('Green text', ccGreen);
-    TConsole.WriteLn('Cyan text', ccCyan);
-    TConsole.WriteLn('Red text', ccRed);
-    TConsole.WriteLn('Magenta text', ccMagenta);
-    TConsole.WriteLn('Yellow text', ccYellow);
-    TConsole.WriteLn('White text', ccWhite);
+    WriteColoredLn('Testing basic colors:', ccWhite);
+    WriteColoredLn('Black text', ccBlack);
+    WriteColoredLn('Blue text', ccBlue);
+    WriteColoredLn('Green text', ccGreen);
+    WriteColoredLn('Cyan text', ccCyan);
+    WriteColoredLn('Red text', ccRed);
+    WriteColoredLn('Magenta text', ccMagenta);
+    WriteColoredLn('Yellow text', ccYellow);
+    WriteColoredLn('White text', ccWhite);
     AssertTrue('Basic colors should not raise exceptions', True);
   finally
     TConsole.ResetColors;
@@ -631,15 +631,15 @@ procedure TCLIFrameworkTests.Test_6_2_BrightColors;
 begin
   try
     // Test bright colors
-    TConsole.WriteLn('Testing bright colors:', ccWhite);
-    TConsole.WriteLn('Bright Black text', ccBrightBlack);
-    TConsole.WriteLn('Bright Blue text', ccBrightBlue);
-    TConsole.WriteLn('Bright Green text', ccBrightGreen);
-    TConsole.WriteLn('Bright Cyan text', ccBrightCyan);
-    TConsole.WriteLn('Bright Red text', ccBrightRed);
-    TConsole.WriteLn('Bright Magenta text', ccBrightMagenta);
-    TConsole.WriteLn('Bright Yellow text', ccBrightYellow);
-    TConsole.WriteLn('Bright White text', ccBrightWhite);
+    WriteColoredLn('Testing bright colors:', ccWhite);
+    WriteColoredLn('Bright Black text', ccBrightBlack);
+    WriteColoredLn('Bright Blue text', ccBrightBlue);
+    WriteColoredLn('Bright Green text', ccBrightGreen);
+    WriteColoredLn('Bright Cyan text', ccBrightCyan);
+    WriteColoredLn('Bright Red text', ccBrightRed);
+    WriteColoredLn('Bright Magenta text', ccBrightMagenta);
+    WriteColoredLn('Bright Yellow text', ccBrightYellow);
+    WriteColoredLn('Bright White text', ccBrightWhite);
     AssertTrue('Bright colors should not raise exceptions', True);
   finally
     TConsole.ResetColors;
@@ -650,11 +650,11 @@ procedure TCLIFrameworkTests.Test_6_3_BackgroundColors;
 begin
   try
     // Test background colors
-    TConsole.WriteLn('Testing background colors:', ccWhite);
+    WriteColoredLn('Testing background colors:', ccWhite);
     TConsole.SetBackgroundColor(ccBlue);
-    TConsole.WriteLn('Text with blue background', ccWhite);
+    WriteColoredLn('Text with blue background', ccWhite);
     TConsole.SetBackgroundColor(ccGreen);
-    TConsole.WriteLn('Text with green background', ccBlack);
+    WriteColoredLn('Text with green background', ccBlack);
     AssertTrue('Background colors should not raise exceptions', True);
   finally
     TConsole.ResetColors;
@@ -665,12 +665,12 @@ procedure TCLIFrameworkTests.Test_6_4_ColorReset;
 begin
   try
     // Test color reset functionality
-    TConsole.WriteLn('Testing color reset:', ccWhite);
+    WriteColoredLn('Testing color reset:', ccWhite);
     TConsole.SetForegroundColor(ccRed);
     TConsole.SetBackgroundColor(ccYellow);
-    TConsole.Write('Colored text');
+    WriteColored('Colored text');
     TConsole.ResetColors;
-    TConsole.WriteLn(' - should be back to default colors');
+    WriteColoredLn(' - should be back to default colors');
     AssertTrue('Color reset should not raise exceptions', True);
   finally
     TConsole.ResetColors; // Make absolutely sure colors are reset
@@ -681,12 +681,12 @@ procedure TCLIFrameworkTests.Test_6_5_WriteWithColors;
 begin
   try
     // Test Write and WriteLn with colors
-    TConsole.WriteLn('Testing Write/WriteLn with colors:', ccWhite);
-    TConsole.Write('This is ', ccWhite);
-    TConsole.Write('multi', ccRed);
-    TConsole.Write('-', ccWhite);
-    TConsole.Write('colored', ccBlue);
-    TConsole.WriteLn(' text', ccGreen);
+    WriteColoredLn('Testing Write/WriteLn with colors:', ccWhite);
+    WriteColored('This is ', ccWhite);
+    WriteColored('multi', ccRed);
+    WriteColored('-', ccWhite);
+    WriteColored('colored', ccBlue);
+    WriteColoredLn(' text', ccGreen);
     AssertTrue('Write with colors should not raise exceptions', True);
   finally
     TConsole.ResetColors;

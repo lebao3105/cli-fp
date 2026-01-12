@@ -414,22 +414,19 @@ TConsoleColor = (
 ##### `TConsole`
 Static class for console operations.
 ```pascal
-TConsole = class
-public
-  class procedure SetForegroundColor(const Color: TConsoleColor);
-  class procedure SetBackgroundColor(const Color: TConsoleColor);
-  class procedure ResetColors;
-  class procedure ClearLine;
-  class procedure MoveCursorUp(const Lines: Integer = 1);
-  class procedure MoveCursorDown(const Lines: Integer = 1);
-  class procedure MoveCursorLeft(const Columns: Integer = 1);
-  class procedure MoveCursorRight(const Columns: Integer = 1);
-  class procedure SaveCursorPosition;
-  class procedure RestoreCursorPosition;
-  class procedure Write(const Text: string); overload;
-  class procedure Write(const Text: string; const FgColor: TConsoleColor); overload;
-  class procedure WriteLn(const Text: string); overload;
-  class procedure WriteLn(const Text: string; const FgColor: TConsoleColor); overload;
+procedure SetForegroundColor(const Color: TConsoleColor);
+procedure SetBackgroundColor(const Color: TConsoleColor);
+procedure ResetColors;
+procedure ClearLine;
+procedure MoveCursorUp(const Lines: Integer = 1);
+procedure MoveCursorDown(const Lines: Integer = 1);
+procedure MoveCursorLeft(const Columns: Integer = 1);
+procedure MoveCursorRight(const Columns: Integer = 1);
+procedure MoveCursorTo(const X, Y: integer);
+procedure SaveCursorPosition;
+procedure RestoreCursorPosition;
+procedure Write(const Text: string; const FgColor: TConsoleColor);
+procedure WriteLn(const Text: string; const FgColor: TConsoleColor);
 end;
 ```
 
@@ -467,7 +464,7 @@ var
   Name: string;
 begin
   GetParameterValue('--name', Name);
-  TConsole.WriteLn('Hello, ' + Name + '!', ccDefault);
+  WriteColoredLn('Hello, ' + Name + '!', ccDefault);
 
   Result := 0;
 end;
@@ -504,13 +501,13 @@ begin
   // Get required parameters
   if not GetParameterValue('--source', Source) then
   begin
-    TConsole.WriteLn('Error: Source file is required', ccRed);
+    WriteColoredLn('Error: Source file is required', ccRed);
     Exit(1);
   end;
   
   if not GetParameterValue('--dest', Dest) then
   begin
-    TConsole.WriteLn('Error: Destination is required', ccRed);
+    WriteColoredLn('Error: Destination is required', ccRed);
     Exit(1);
   end;
   
@@ -518,11 +515,11 @@ begin
   Force := GetParameterValue('--force', Force);
   
   // Show operation details
-  TConsole.WriteLn('Copying file:', ccCyan);
-  TConsole.WriteLn('  From: ' + Source);
-  TConsole.WriteLn('  To: ' + Dest);
+  WriteColoredLn('Copying file:', ccCyan);
+  WriteColoredLn('  From: ' + Source);
+  WriteColoredLn('  To: ' + Dest);
   if Force then
-    TConsole.WriteLn('  Force: Yes', ccYellow);
+    WriteColoredLn('  Force: Yes', ccYellow);
     
   Result := 0;
 end;
@@ -565,16 +562,16 @@ begin
   // Get flag value (true when present)
   GetParameterValue('--force', IsForced);
   if IsForced then
-    TConsole.WriteLn('Force flag is enabled', ccGreen)
+    WriteColoredLn('Force flag is enabled', ccGreen)
   else
-    TConsole.WriteLn('Force flag is disabled', ccYellow);
+    WriteColoredLn('Force flag is disabled', ccYellow);
 
   // Get boolean value (explicit true/false)
   GetParameterValue('--verbose', IsVerbose);
   if IsVerbose then
-    TConsole.WriteLn('Verbose mode is ON', ccGreen)
+    WriteColoredLn('Verbose mode is ON', ccGreen)
   else
-    TConsole.WriteLn('Verbose mode is OFF', ccYellow);
+    WriteColoredLn('Verbose mode is OFF', ccYellow);
     
   Result := 0;
 end;
@@ -641,14 +638,14 @@ begin
     for i := 0 to Count - 1 do
     begin
       if Verbose then
-        TConsole.WriteLn(Format('Processing file %d/%d...', [i + 1, Count]), ccCyan);
+        WriteColoredLn(Format('Processing file %d/%d...', [i + 1, Count]), ccCyan);
         
       ProcessFile('file' + IntToStr(i + 1));
       Progress.Update(i + 1);
       Sleep(500); // Simulate work
     end;
 
-    TConsole.WriteLn('All files processed successfully!', ccGreen);
+    WriteColoredLn('All files processed successfully!', ccGreen);
     Result := 0;
   finally
     Progress.Stop;
@@ -705,15 +702,15 @@ begin
     Write(Format('Validating %s\file%d.txt... ', [Path, i]));
     try
       ValidateFile(Path + '\file' + IntToStr(i) + '.txt');
-      TConsole.WriteLn('OK', ccGreen);
+      WriteColoredLn('OK', ccGreen);
     except
       on E: Exception do
       begin
         Inc(ErrorCount);
-        TConsole.WriteLn('ERROR: ' + E.Message, ccRed);
+        WriteColoredLn('ERROR: ' + E.Message, ccRed);
         if StopOnError then
         begin
-          TConsole.WriteLn('Stopping due to error (--stop-on-error)', ccYellow);
+          WriteColoredLn('Stopping due to error (--stop-on-error)', ccYellow);
           Exit(1);
         end;
       end;
@@ -721,9 +718,9 @@ begin
   end;
 
   if ErrorCount > 0 then
-    TConsole.WriteLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow)
+    WriteColoredLn(Format('Validation complete with %d errors', [ErrorCount]), ccYellow)
   else
-    TConsole.WriteLn('All files validated successfully!', ccGreen);
+    WriteColoredLn('All files validated successfully!', ccGreen);
 
   Result := ErrorCount;
 end;
@@ -751,6 +748,8 @@ begin
   ExitCode := App.Execute;
 end;
 ```
+<<<<<<< HEAD
+=======
 
 ### Completion Script Generation
 
@@ -778,3 +777,4 @@ The framework can generate robust, context-aware completion scripts for both Bas
 - **Works in PowerShell 7.5+** (cross-platform)
 
 See the user manual for setup, usage, and safe sourcing instructions.
+>>>>>>> main

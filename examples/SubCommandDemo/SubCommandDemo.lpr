@@ -108,12 +108,12 @@ begin
   Bare := GetParameterValue('--bare', BareValue);
 
   // Display operation details in color
-  TConsole.WriteLn('Initializing repository...', ccCyan);
-  TConsole.WriteLn('  Path: ' + Path, ccWhite);
+  WriteColoredLn('Initializing repository...', ccCyan);
+  WriteColoredLn('  Path: ' + Path, ccWhite);
   if Bare then
-    TConsole.WriteLn('  Type: Bare repository', ccWhite)
+    WriteColoredLn('  Type: Bare repository', ccWhite)
   else
-    TConsole.WriteLn('  Type: Regular repository', ccWhite);
+    WriteColoredLn('  Type: Regular repository', ccWhite);
 end;
 
 { TRepoCloneCommand implementation
@@ -128,7 +128,7 @@ begin
   // URL is required - exit with error if missing
   if not GetParameterValue('--url', URL) then
   begin
-    TConsole.WriteLn('Error: URL is required', ccRed);
+    WriteColoredLn('Error: URL is required', ccRed);
     Exit(1);  // Return error code
   end;
 
@@ -143,11 +143,11 @@ begin
     Depth := 'full';  // Default to full clone
 
   // Display operation details in color
-  TConsole.WriteLn('Cloning repository...', ccCyan);
-  TConsole.WriteLn('  From: ' + URL, ccWhite);
-  TConsole.WriteLn('  To: ' + Path, ccWhite);
-  TConsole.WriteLn('  Branch: ' + Branch, ccWhite);
-  TConsole.WriteLn('  Depth: ' + Depth, ccWhite);
+  WriteColoredLn('Cloning repository...', ccCyan);
+  WriteColoredLn('  From: ' + URL, ccWhite);
+  WriteColoredLn('  To: ' + Path, ccWhite);
+  WriteColoredLn('  Branch: ' + Branch, ccWhite);
+  WriteColoredLn('  Depth: ' + Depth, ccWhite);
 end;
 
 { TRemoteCommand implementation
@@ -169,20 +169,20 @@ begin
   // Both name and URL are required
   if not GetParameterValue('--name', RemoteName) then
   begin
-    TConsole.WriteLn('Error: Remote name is required', ccRed);
+    WriteColoredLn('Error: Remote name is required', ccRed);
     Exit(1);
   end;
 
   if not GetParameterValue('--url', RemoteURL) then
   begin
-    TConsole.WriteLn('Error: Remote URL is required', ccRed);
+    WriteColoredLn('Error: Remote URL is required', ccRed);
     Exit(1);
   end;
 
   // Display operation details
-  TConsole.WriteLn('Adding remote...', ccCyan);
-  TConsole.WriteLn('  Name: ' + RemoteName, ccWhite);
-  TConsole.WriteLn('  URL: ' + RemoteURL, ccWhite);
+  WriteColoredLn('Adding remote...', ccCyan);
+  WriteColoredLn('  Name: ' + RemoteName, ccWhite);
+  WriteColoredLn('  URL: ' + RemoteURL, ccWhite);
 end;
 
 { TRemoteRemoveCommand implementation
@@ -196,13 +196,13 @@ begin
   // Name is required
   if not GetParameterValue('--name', RemoteName) then
   begin
-    TConsole.WriteLn('Error: Remote name is required', ccRed);
+    WriteColoredLn('Error: Remote name is required', ccRed);
     Exit(1);
   end;
 
   // Display operation details
-  TConsole.WriteLn('Removing remote...', ccCyan);
-  TConsole.WriteLn('  Name: ' + RemoteName, ccWhite);
+  WriteColoredLn('Removing remote...', ccCyan);
+  WriteColoredLn('  Name: ' + RemoteName, ccWhite);
 end;
 
 { Main program variables }
@@ -268,7 +268,7 @@ begin
     // Handle any unhandled exceptions
     on E: Exception do
     begin
-      TConsole.WriteLn('Error: ' + E.Message, ccRed);
+      WriteColoredLn('Error: ' + E.Message, ccRed);
       ExitCode := 1;
     end;
   end;

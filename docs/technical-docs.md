@@ -414,7 +414,7 @@ try
 except
   on E: ECommandExecutionException do
   begin
-    TConsole.WriteLn('Error: ' + E.Message, ccRed);
+    WriteColoredLn('Error: ' + E.Message, ccRed);
     Result := 1;
   end;
 end;

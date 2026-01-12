@@ -87,7 +87,7 @@ type
       // Get path parameters
       if not GetParameterValue('--input', InputDir) then
       begin
-        TConsole.WriteLn('Error: Input directory is required', ccRed);
+        WriteColoredLn('Error: Input directory is required', ccRed);
         Exit(1);
       end;
       
@@ -110,7 +110,7 @@ type
         except
           on E: Exception do
           begin
-            TConsole.WriteLn('Error: Invalid date/time format. Use YYYY-MM-DD HH:MM:SS', ccRed);
+            WriteColoredLn('Error: Invalid date/time format. Use YYYY-MM-DD HH:MM:SS', ccRed);
             Exit(1);
           end;
         end;
@@ -120,19 +120,19 @@ type
       GetParameterValue('--api-key', ApiKeyStr);
 
       // Show configuration
-      TConsole.WriteLn('Configuration:', ccCyan);
-      TConsole.WriteLn(Format('  Input Directory: %s', [InputDir]), ccCyan);
-      TConsole.WriteLn(Format('  Output Directory: %s', [OutputDir]), ccCyan);
-      TConsole.WriteLn(Format('  Log Level: %s', [LogLevelStr]), ccCyan);
+      WriteColoredLn('Configuration:', ccCyan);
+      WriteColoredLn(Format('  Input Directory: %s', [InputDir]), ccCyan);
+      WriteColoredLn(Format('  Output Directory: %s', [OutputDir]), ccCyan);
+      WriteColoredLn(Format('  Log Level: %s', [LogLevelStr]), ccCyan);
       if Tags.Count > 0 then
-        TConsole.WriteLn(Format('  Tags: %s', [Tags.DelimitedText]), ccCyan);
+        WriteColoredLn(Format('  Tags: %s', [Tags.DelimitedText]), ccCyan);
       if StartAfterStr <> '' then
-        TConsole.WriteLn(Format('  Processing files after: %s', [StartAfterStr]), ccCyan);
+        WriteColoredLn(Format('  Processing files after: %s', [StartAfterStr]), ccCyan);
       if ApiKeyStr <> '' then
-        TConsole.WriteLn('  API Key: ***', ccCyan);
+        WriteColoredLn('  API Key: ***', ccCyan);
 
       // Simulate finding files
-      TConsole.WriteLn(Format('Finding files in %s...', [InputDir]), ccCyan);
+      WriteColoredLn(Format('Finding files in %s...', [InputDir]), ccCyan);
       Spinner := CreateSpinner(TSpinnerStyle.ssDots);
       Spinner.Start;
       try
@@ -154,14 +154,14 @@ type
         for i := 0 to Files.Count - 1 do
         begin
           if Verbose then
-            TConsole.WriteLn(Format(' Processing: %s', [Files[i]]), ccCyan);
+            WriteColoredLn(Format(' Processing: %s', [Files[i]]), ccCyan);
 
           ProcessFile(Files[i]);
           Progress.Update(i + 1);
           Sleep(500); // Simulate work
         end;
 
-        TConsole.WriteLn(' All files processed successfully!', ccGreen);
+        WriteColoredLn(' All files processed successfully!', ccGreen);
         Result := 0;
       finally
         Progress.Stop;
