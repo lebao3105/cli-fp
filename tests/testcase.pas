@@ -693,9 +693,6 @@ begin
   end;
 end;
 
-
-
-
 initialization
   RegisterTest(TCLIFrameworkTests);
 end.

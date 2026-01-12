@@ -15,16 +15,12 @@ function Check-Lazbuild {
 }
 
 $examples = @(
-    'BooleanTest',
     'ColorDemo',
     'ErrorHandlingDemo',
     'LongRunningOpDemo',
-    'MyApp',
-    'MyGit',
     'ProgressDemo',
     'SimpleDemo',
-    'SubCommandDemo',
-    'TestFlags'
+    'SubCommandDemo'
 )
 
 Check-Lazbuild
